@@ -1,0 +1,110 @@
+version: '3.8'
+
+# 开发环境配置 - 支持热更新
+# 使用方式: docker-compose -f docker-compose.dev.yml up -d
+
+services:
+  # Frontend 开发服务器 (Vite HMR)
+  frontend:
+    image: node:20-alpine
+    container_name: llm-platform-frontend-dev
+    working_dir: /app
+    ports:
+      - "${FRONTEND_PORT:-5173}:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:${BACKEND_PORT:-8080}/api
+    depends_on:
+      - backend
+    networks:
+      - llm-platform-network
+
+  # Backend 开发服务器 (Spring Boot DevTools)
+  backend:
+    image: maven:3.9-eclipse-temurin-17
+    container_name: llm-platform-backend-dev
+    working_dir: /app
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./backend:/app
+      - maven-repo:/root/.m2
+      - ./backend/maven-settings.xml:/root/.m2/settings.xml:ro
+    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dspring.devtools.restart.enabled=true"
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-llm_learning}
+      - MYSQL_USERNAME=${MYSQL_USERNAME:-llm_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-llm_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET:-llm-language-learning-platform-secret-key-2024}
+      - AI_DEFAULT_PROVIDER=${AI_DEFAULT_PROVIDER:-deepseek}
+      - DEEPSEEK_ENABLED=${DEEPSEEK_ENABLED:-true}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - OLLAMA_ENABLED=${OLLAMA_ENABLED:-false}
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - llm-platform-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: llm-platform-mysql-dev
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-llm_learning}
+      - MYSQL_USER=${MYSQL_USERNAME:-llm_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-llm_password}
+    volumes:
+      - mysql-dev-data:/var/lib/mysql
+      - ./backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - llm-platform-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: llm-platform-redis-dev
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-dev-data:/data
+    networks:
+      - llm-platform-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  llm-platform-network:
+    driver: bridge
+
+volumes:
+  mysql-dev-data:
+  redis-dev-data:
+  frontend-node-modules:
+  maven-repo:

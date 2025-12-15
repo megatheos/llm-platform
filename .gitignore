@@ -1,0 +1,45 @@
+# Environment files (contains secrets/API keys)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Keep example env file
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Backend
+backend/target/
+backend/.jqwik-database
+backend/maven-settings.xml
+*.jar
+*.war
+*.class
+
+# Logs
+*.log
+logs/
+
+# Docker volumes data
+mysql-dev-data/
+redis-dev-data/
+
+# Kiro IDE
+.kiro/
