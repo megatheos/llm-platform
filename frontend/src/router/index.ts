@@ -11,43 +11,43 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginPage.vue'),
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false, layout: 'none' }
   },
   {
     path: '/register',
     name: 'register',
     component: () => import('@/views/RegisterPage.vue'),
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false, layout: 'none' }
   },
   {
     path: '/dashboard',
     name: 'dashboard',
     component: () => import('@/views/DashboardPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, navKey: 'dashboard', layout: 'none' }
   },
   {
     path: '/word-query',
     name: 'wordQuery',
     component: () => import('@/views/WordQueryPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, navKey: 'wordQuery', layout: 'app' }
   },
   {
     path: '/dialogue',
     name: 'dialogue',
     component: () => import('@/views/DialoguePage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, navKey: 'dialogue', layout: 'app' }
   },
   {
     path: '/quiz',
     name: 'quiz',
     component: () => import('@/views/QuizPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, navKey: 'quiz', layout: 'app' }
   },
   {
     path: '/records',
     name: 'records',
     component: () => import('@/views/RecordsPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, navKey: 'records', layout: 'app' }
   }
 ]
 

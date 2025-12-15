@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDialogueStore } from '@/stores/dialogue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Scenario, CreateScenarioRequest } from '@/types'
 
+const { t } = useI18n()
 const dialogueStore = useDialogueStore()
 
 // UI state
@@ -19,13 +21,13 @@ const newScenario = ref<CreateScenarioRequest>({
 })
 
 // Category options for scenarios
-const categoryOptions = [
-  { value: 'travel', label: 'Travel' },
-  { value: 'business', label: 'Business' },
-  { value: 'daily', label: 'Daily Life' },
-  { value: 'academic', label: 'Academic' },
-  { value: 'custom', label: 'Custom' }
-]
+const categoryOptions = computed(() => [
+  { value: 'travel', label: t('dialogue.categories.travel') },
+  { value: 'business', label: t('dialogue.categories.business') },
+  { value: 'daily', label: t('dialogue.categories.daily') },
+  { value: 'academic', label: t('dialogue.categories.academic') },
+  { value: 'custom', label: t('dialogue.categories.custom') }
+])
 
 // Current scenario info
 const currentScenario = computed(() => {
@@ -49,19 +51,18 @@ async function handleSelectScenario(scenario: Scenario) {
     if (dialogueStore.error) {
       ElMessage.error(dialogueStore.error)
     } else {
-      ElMessage.success(`Started dialogue: ${scenario.name}`)
+      ElMessage.success(t('dialogue.sessionStarted'))
     }
   } catch (err: any) {
-    ElMessage.error(err.message || 'Failed to start session')
+    ElMessage.error(err.message || t('dialogue.startFailed'))
   }
 }
-
 
 // Handle sending message
 async function handleSendMessage() {
   const message = messageInput.value.trim()
   if (!message) {
-    ElMessage.warning('Please enter a message')
+    ElMessage.warning(t('dialogue.enterMessage'))
     return
   }
 
@@ -75,7 +76,7 @@ async function handleSendMessage() {
       ElMessage.error(dialogueStore.error)
     }
   } catch (err: any) {
-    ElMessage.error(err.message || 'Failed to send message')
+    ElMessage.error(err.message || t('dialogue.sendFailed'))
   }
 }
 
@@ -83,21 +84,21 @@ async function handleSendMessage() {
 async function handleEndSession() {
   try {
     await ElMessageBox.confirm(
-      'Are you sure you want to end this dialogue session?',
-      'End Session',
+      t('dialogue.endConfirmMessage'),
+      t('dialogue.endConfirmTitle'),
       {
-        confirmButtonText: 'End',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: t('dialogue.endSession'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
       }
     )
 
     await dialogueStore.endCurrentSession()
     dialogueStore.clearSession()
-    ElMessage.success('Session ended')
+    ElMessage.success(t('dialogue.sessionEnded'))
   } catch (err: any) {
     if (err !== 'cancel') {
-      ElMessage.error(err.message || 'Failed to end session')
+      ElMessage.error(err.message || t('dialogue.endFailed'))
     }
   }
 }
@@ -105,30 +106,29 @@ async function handleEndSession() {
 // Handle creating custom scenario
 async function handleCreateScenario() {
   if (!newScenario.value.name.trim()) {
-    ElMessage.warning('Please enter a scenario name')
+    ElMessage.warning(t('dialogue.enterScenarioName'))
     return
   }
   if (!newScenario.value.description.trim()) {
-    ElMessage.warning('Please enter a scenario description')
+    ElMessage.warning(t('dialogue.enterScenarioDesc'))
     return
   }
   if (!newScenario.value.category) {
-    ElMessage.warning('Please select a category')
+    ElMessage.warning(t('dialogue.selectCategory'))
     return
   }
 
   try {
     const scenario = await dialogueStore.createScenario(newScenario.value)
     if (scenario) {
-      ElMessage.success('Scenario created successfully')
+      ElMessage.success(t('dialogue.scenarioCreated'))
       showCreateDialog.value = false
-      // Reset form
       newScenario.value = { name: '', description: '', category: '' }
     } else if (dialogueStore.error) {
       ElMessage.error(dialogueStore.error)
     }
   } catch (err: any) {
-    ElMessage.error(err.message || 'Failed to create scenario')
+    ElMessage.error(err.message || t('dialogue.createFailed'))
   }
 }
 
@@ -140,19 +140,8 @@ function formatTime(timestamp: string): string {
 
 // Get category label
 function getCategoryLabel(category: string): string {
-  const option = categoryOptions.find(c => c.value === category)
+  const option = categoryOptions.value.find(c => c.value === category)
   return option ? option.label : category
-}
-
-// Helper function to get scenario icon based on category
-function getScenarioIcon(category: string): string {
-  const icons: Record<string, string> = {
-    travel: 'Location',
-    business: 'Briefcase',
-    daily: 'House',
-    academic: 'Reading'
-  }
-  return icons[category] || 'ChatDotRound'
 }
 
 onMounted(() => {
@@ -160,21 +149,13 @@ onMounted(() => {
 })
 </script>
 
-
 <template>
   <div class="dialogue-page">
     <!-- Scenario Selection View -->
     <div v-if="!dialogueStore.hasActiveSession" class="scenario-selection">
-      <el-row :gutter="20">
-        <el-col :span="24">
-          <el-card class="header-card">
-            <div class="page-header">
-              <h1>AI Dialogue Practice</h1>
-              <p>Select a scenario to start practicing conversations</p>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
+      <div class="page-intro">
+        <p>{{ t('dialogue.selectScenarioHint') }}</p>
+      </div>
 
       <el-row :gutter="20" class="scenario-section">
         <!-- Preset Scenarios -->
@@ -182,7 +163,7 @@ onMounted(() => {
           <el-card>
             <template #header>
               <div class="card-header">
-                <span>Preset Scenarios</span>
+                <span>{{ t('dialogue.presetScenarios') }}</span>
                 <el-badge :value="dialogueStore.presetScenarios.length" />
               </div>
             </template>
@@ -203,9 +184,7 @@ onMounted(() => {
                   @click="handleSelectScenario(scenario)"
                 >
                   <div class="scenario-icon">
-                    <el-icon :size="32">
-                      <component :is="getScenarioIcon(scenario.category)" />
-                    </el-icon>
+                    <el-icon :size="32"><ChatDotRound /></el-icon>
                   </div>
                   <div class="scenario-info">
                     <h3>{{ scenario.name }}</h3>
@@ -220,7 +199,7 @@ onMounted(() => {
 
             <el-empty
               v-if="!dialogueStore.loading && dialogueStore.presetScenarios.length === 0"
-              description="No preset scenarios available"
+              :description="t('dialogue.noPresetScenarios')"
             />
           </el-card>
         </el-col>
@@ -230,9 +209,9 @@ onMounted(() => {
           <el-card>
             <template #header>
               <div class="card-header">
-                <span>Custom Scenarios</span>
+                <span>{{ t('dialogue.customScenarios') }}</span>
                 <el-button type="primary" size="small" @click="showCreateDialog = true">
-                  Create New
+                  {{ t('dialogue.createNew') }}
                 </el-button>
               </div>
             </template>
@@ -251,7 +230,7 @@ onMounted(() => {
 
               <el-empty
                 v-if="dialogueStore.customScenarios.length === 0"
-                description="No custom scenarios yet"
+                :description="t('dialogue.noCustomScenarios')"
                 :image-size="80"
               />
             </el-scrollbar>
@@ -259,7 +238,6 @@ onMounted(() => {
         </el-col>
       </el-row>
     </div>
-
 
     <!-- Chat Interface View -->
     <div v-else class="chat-interface">
@@ -269,11 +247,11 @@ onMounted(() => {
           <div class="chat-header">
             <div class="chat-info">
               <el-icon><ChatDotRound /></el-icon>
-              <span class="chat-title">{{ currentScenario?.name || 'Dialogue' }}</span>
-              <el-tag size="small" type="success">Active</el-tag>
+              <span class="chat-title">{{ currentScenario?.name || t('dialogue.title') }}</span>
+              <el-tag size="small" type="success">{{ t('dialogue.active') }}</el-tag>
             </div>
             <el-button type="danger" size="small" @click="handleEndSession">
-              End Session
+              {{ t('dialogue.endSession') }}
             </el-button>
           </div>
         </template>
@@ -316,7 +294,7 @@ onMounted(() => {
           <!-- Empty State -->
           <el-empty
             v-if="dialogueStore.messages.length === 0 && !dialogueStore.sendingMessage"
-            description="Start the conversation by sending a message"
+            :description="t('dialogue.startHint')"
             :image-size="100"
           />
         </div>
@@ -327,7 +305,7 @@ onMounted(() => {
             v-model="messageInput"
             type="textarea"
             :rows="2"
-            placeholder="Type your message..."
+            :placeholder="t('dialogue.typeMessage')"
             :disabled="dialogueStore.sendingMessage"
             @keyup.enter.ctrl="handleSendMessage"
           />
@@ -338,30 +316,29 @@ onMounted(() => {
             @click="handleSendMessage"
           >
             <el-icon><Promotion /></el-icon>
-            Send
+            {{ t('dialogue.send') }}
           </el-button>
         </div>
       </el-card>
     </div>
 
-
     <!-- Create Scenario Dialog -->
     <el-dialog
       v-model="showCreateDialog"
-      title="Create Custom Scenario"
+      :title="t('dialogue.createScenario')"
       width="500px"
     >
       <el-form :model="newScenario" label-width="100px">
-        <el-form-item label="Name" required>
+        <el-form-item :label="t('dialogue.scenarioName')" required>
           <el-input
             v-model="newScenario.name"
-            placeholder="Enter scenario name"
+            :placeholder="t('dialogue.enterScenarioName')"
             maxlength="50"
             show-word-limit
           />
         </el-form-item>
-        <el-form-item label="Category" required>
-          <el-select v-model="newScenario.category" placeholder="Select category" style="width: 100%">
+        <el-form-item :label="t('dialogue.category')" required>
+          <el-select v-model="newScenario.category" :placeholder="t('dialogue.selectCategory')" style="width: 100%">
             <el-option
               v-for="cat in categoryOptions"
               :key="cat.value"
@@ -370,21 +347,21 @@ onMounted(() => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Description" required>
+        <el-form-item :label="t('dialogue.description')" required>
           <el-input
             v-model="newScenario.description"
             type="textarea"
             :rows="3"
-            placeholder="Describe the scenario context and goals"
+            :placeholder="t('dialogue.enterScenarioDesc')"
             maxlength="500"
             show-word-limit
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showCreateDialog = false">Cancel</el-button>
+        <el-button @click="showCreateDialog = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="dialogueStore.loading" @click="handleCreateScenario">
-          Create
+          {{ t('dialogue.create') }}
         </el-button>
       </template>
     </el-dialog>
@@ -392,37 +369,22 @@ onMounted(() => {
 </template>
 
 <script lang="ts">
-import { ChatDotRound, Promotion, Location, Briefcase, House, Reading } from '@element-plus/icons-vue'
+import { ChatDotRound, Promotion } from '@element-plus/icons-vue'
 
 export default {
-  components: { ChatDotRound, Promotion, Location, Briefcase, House, Reading }
+  components: { ChatDotRound, Promotion }
 }
 </script>
 
-
 <style scoped>
 .dialogue-page {
-  padding: 20px;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 140px);
 }
 
-/* Scenario Selection Styles */
-.header-card {
-  margin-bottom: 20px;
-}
-
-.page-header {
+.page-intro {
   text-align: center;
-}
-
-.page-header h1 {
-  margin: 0 0 8px 0;
-  color: #303133;
-}
-
-.page-header p {
-  margin: 0;
-  color: #909399;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
 }
 
 .scenario-section {
@@ -450,49 +412,49 @@ export default {
 }
 
 .scenario-card:hover {
-  border-color: #409eff;
+  border-color: var(--color-accent);
   transform: translateY(-2px);
 }
 
 .scenario-icon {
   margin-right: 16px;
-  color: #409eff;
+  color: var(--color-accent);
   flex-shrink: 0;
 }
 
 .scenario-info h3 {
   margin: 0 0 8px 0;
   font-size: 16px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .scenario-info p {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
 .custom-scenario-item {
   padding: 12px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border-color-light);
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .custom-scenario-item:hover {
-  background-color: #f5f7fa;
+  background-color: var(--bg-tertiary);
 }
 
 .custom-scenario-name {
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .custom-scenario-desc {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
   margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -539,7 +501,7 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--bg-tertiary);
 }
 
 .scenario-intro {
@@ -567,16 +529,16 @@ export default {
 }
 
 .message-bubble.user {
-  background-color: #409eff;
-  color: white;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
   border-bottom-right-radius: 4px;
 }
 
 .message-bubble.assistant {
-  background-color: white;
-  color: #303133;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   border-bottom-left-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .message-content {
@@ -606,30 +568,18 @@ export default {
 .typing-dot {
   width: 8px;
   height: 8px;
-  background-color: #909399;
+  background-color: var(--text-muted);
   border-radius: 50%;
   animation: typing 1.4s infinite ease-in-out;
 }
 
-.typing-dot:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-8px);
-  }
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
 }
 
 /* Message Input */
@@ -637,8 +587,8 @@ export default {
   display: flex;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid #ebeef5;
-  background-color: white;
+  border-top: 1px solid var(--border-color-light);
+  background-color: var(--bg-secondary);
 }
 
 .message-input-container .el-input {

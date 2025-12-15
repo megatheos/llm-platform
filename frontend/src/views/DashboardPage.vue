@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useRecordsStore } from '@/stores/records'
 import { useAuthStore } from '@/stores/auth'
 import type { LearningRecord } from '@/types'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import {
   Search,
   ChatDotRound,
@@ -11,9 +13,10 @@ import {
   Trophy,
   DataLine,
   ArrowRight,
-  InfoFilled
+  SwitchButton
 } from '@element-plus/icons-vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const recordsStore = useRecordsStore()
 const authStore = useAuthStore()
@@ -21,79 +24,73 @@ const authStore = useAuthStore()
 // Quick access features
 const features = [
   {
-    name: 'Word Query',
-    description: 'Look up words and translations',
+    key: 'wordQuery',
     icon: 'Search',
     route: '/word-query',
-    color: '#409eff',
-    bgColor: '#ecf5ff'
+    color: '#3b82f6',
+    bgColor: '#eff6ff'
   },
   {
-    name: 'Dialogue Practice',
-    description: 'Practice conversations with AI',
+    key: 'dialogue',
     icon: 'ChatDotRound',
     route: '/dialogue',
-    color: '#67c23a',
-    bgColor: '#f0f9eb'
+    color: '#10b981',
+    bgColor: '#ecfdf5'
   },
   {
-    name: 'Take a Quiz',
-    description: 'Test your language knowledge',
+    key: 'quiz',
     icon: 'Document',
     route: '/quiz',
-    color: '#e6a23c',
-    bgColor: '#fdf6ec'
+    color: '#f59e0b',
+    bgColor: '#fffbeb'
   },
   {
-    name: 'Learning Records',
-    description: 'View your learning history',
+    key: 'records',
     icon: 'DataLine',
     route: '/records',
-    color: '#909399',
-    bgColor: '#f4f4f5'
+    color: '#6366f1',
+    bgColor: '#eef2ff'
   }
 ]
 
-// Navigate to feature
 function navigateTo(route: string) {
   router.push(route)
 }
 
-// Format relative time
 function formatRelativeTime(dateStr: string): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-  return `${Math.floor(diffDays / 30)} months ago`
+  if (diffDays === 0) return t('dashboard.today')
+  if (diffDays === 1) return t('dashboard.yesterday')
+  if (diffDays < 7) return t('dashboard.daysAgo', { n: diffDays })
+  if (diffDays < 30) return t('dashboard.weeksAgo', { n: Math.floor(diffDays / 7) })
+  return t('dashboard.monthsAgo', { n: Math.floor(diffDays / 30) })
 }
 
-// Get activity description
 function getActivityDescription(record: LearningRecord): string {
   const details = record.activityDetails
-  if (!details) return 'Activity completed'
+  if (!details) return ''
   
   switch (record.activityType) {
     case 'WORD_QUERY':
-      const wordDetails = details as any
-      return `Queried "${wordDetails.word}"`
+      return `"${(details as any).word}"`
     case 'DIALOGUE':
-      const dialogueDetails = details as any
-      return `${dialogueDetails.scenarioName}`
+      return (details as any).scenarioName
     case 'QUIZ':
-      const quizDetails = details as any
-      return `Score: ${quizDetails.score}/${quizDetails.totalScore}`
+      return `${(details as any).score}/${(details as any).totalScore}`
     default:
-      return 'Activity completed'
+      return ''
   }
 }
 
-// Fetch data on mount
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/login')
+}
+
 onMounted(async () => {
   await Promise.all([
     recordsStore.fetchRecords({ pageSize: 5 }),
@@ -104,496 +101,569 @@ onMounted(async () => {
 
 <template>
   <div class="dashboard-page">
-    <!-- Welcome Section -->
-    <el-row :gutter="20">
-      <el-col :span="24">
-        <el-card class="welcome-card">
-          <div class="welcome-content">
-            <div class="welcome-text">
-              <h1>Welcome back, {{ authStore.user?.username || 'Learner' }}!</h1>
-              <p>Continue your language learning journey</p>
-            </div>
-            <div class="welcome-stats" v-if="recordsStore.statistics">
-              <div class="mini-stat">
-                <span class="mini-stat-value">{{ recordsStore.statistics.activitiesLast7Days || 0 }}</span>
-                <span class="mini-stat-label">Activities this week</span>
-              </div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">📚</span>
+        <span class="logo-text">{{ t('common.appName') }}</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a 
+          v-for="feature in features" 
+          :key="feature.key"
+          class="nav-item"
+          :class="{ active: $route.path === feature.route }"
+          @click="navigateTo(feature.route)"
+        >
+          <el-icon :size="20">
+            <Search v-if="feature.icon === 'Search'" />
+            <ChatDotRound v-else-if="feature.icon === 'ChatDotRound'" />
+            <Document v-else-if="feature.icon === 'Document'" />
+            <DataLine v-else />
+          </el-icon>
+          <span>{{ t(`nav.${feature.key}`) }}</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a class="nav-item logout" @click="handleLogout">
+          <el-icon :size="20"><SwitchButton /></el-icon>
+          <span>{{ t('nav.logout') }}</span>
+        </a>
+      </div>
+    </aside>
 
-    <!-- Statistics Overview -->
-    <el-row :gutter="20" class="stats-section">
-      <el-col :xs="12" :sm="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-content">
-            <el-icon class="stat-icon word-icon" :size="32"><Search /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ recordsStore.statistics?.totalWordQueries || 0 }}</div>
-              <div class="stat-label">Words Learned</div>
-            </div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="page-header">
+        <div class="header-left">
+          <h1>{{ t('nav.dashboard') }}</h1>
+        </div>
+        <div class="header-right">
+          <LanguageSwitcher />
+          <div class="user-info">
+            <el-avatar :size="36" class="user-avatar">
+              {{ authStore.user?.username?.charAt(0).toUpperCase() || 'U' }}
+            </el-avatar>
           </div>
-        </el-card>
-      </el-col>
-      <el-col :xs="12" :sm="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-content">
-            <el-icon class="stat-icon dialogue-icon" :size="32"><ChatDotRound /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ recordsStore.statistics?.totalDialogueSessions || 0 }}</div>
-              <div class="stat-label">Conversations</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :xs="12" :sm="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-content">
-            <el-icon class="stat-icon quiz-icon" :size="32"><Document /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ recordsStore.statistics?.totalQuizzes || 0 }}</div>
-              <div class="stat-label">Quizzes Taken</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :xs="12" :sm="6">
-        <el-card class="stat-card" shadow="hover">
-          <div class="stat-content">
-            <el-icon class="stat-icon score-icon" :size="32"><Trophy /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ Math.round(recordsStore.statistics?.averageQuizScore || 0) }}%</div>
-              <div class="stat-label">Avg Score</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </header>
 
-    <!-- Quick Access Section -->
-    <el-row :gutter="20" class="features-section">
-      <el-col :span="24">
-        <el-card>
-          <template #header>
-            <div class="section-header">
-              <span>Quick Access</span>
-              <span class="section-subtitle">Start learning now</span>
-            </div>
-          </template>
-          <el-row :gutter="20">
-            <el-col 
-              v-for="feature in features" 
-              :key="feature.name"
-              :xs="12" 
-              :sm="6"
-            >
-              <div 
-                class="feature-card"
-                @click="navigateTo(feature.route)"
-              >
-                <div 
-                  class="feature-icon"
-                  :style="{ backgroundColor: feature.bgColor, color: feature.color }"
-                >
-                  <el-icon :size="28">
-                    <Search v-if="feature.icon === 'Search'" />
-                    <ChatDotRound v-else-if="feature.icon === 'ChatDotRound'" />
-                    <Document v-else-if="feature.icon === 'Document'" />
-                    <DataLine v-else />
-                  </el-icon>
-                </div>
-                <div class="feature-info">
-                  <div class="feature-name">{{ feature.name }}</div>
-                  <div class="feature-desc">{{ feature.description }}</div>
-                </div>
-              </div>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-col>
-    </el-row>
+      <!-- Welcome Banner -->
+      <section class="welcome-banner">
+        <div class="welcome-content">
+          <h2>{{ t('dashboard.welcome') }}, {{ authStore.user?.username || t('dashboard.learner') }}!</h2>
+          <p>{{ t('dashboard.continueJourney') }}</p>
+        </div>
+        <div class="welcome-stat" v-if="recordsStore.statistics">
+          <span class="stat-number">{{ recordsStore.statistics.activitiesLast7Days || 0 }}</span>
+          <span class="stat-label">{{ t('dashboard.activitiesThisWeek') }}</span>
+        </div>
+      </section>
 
-    <!-- Recent Activities Section -->
-    <el-row :gutter="20" class="recent-section">
-      <el-col :span="24">
-        <el-card>
-          <template #header>
-            <div class="section-header">
-              <span>Recent Activities</span>
-              <el-button type="primary" link @click="navigateTo('/records')">
-                View All <el-icon><ArrowRight /></el-icon>
-              </el-button>
-            </div>
-          </template>
-
-          <!-- Loading State -->
-          <div v-if="recordsStore.loading" class="loading-container">
-            <el-skeleton :rows="3" animated />
+      <!-- Stats Grid -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #eff6ff; color: #3b82f6;">
+            <el-icon :size="24"><Search /></el-icon>
           </div>
-
-          <!-- Recent Activities List -->
-          <div v-else-if="recordsStore.hasRecords" class="recent-list">
-            <div
-              v-for="record in recordsStore.records.slice(0, 5)"
-              :key="record.id"
-              class="recent-item"
-            >
-              <div class="recent-icon">
-                <el-icon 
-                  :size="20" 
-                  :class="['activity-icon', `${record.activityType.toLowerCase()}-icon`]"
-                >
-                  <Search v-if="record.activityType === 'WORD_QUERY'" />
-                  <ChatDotRound v-else-if="record.activityType === 'DIALOGUE'" />
-                  <Document v-else />
-                </el-icon>
-              </div>
-              <div class="recent-content">
-                <div class="recent-type">
-                  <el-tag 
-                    :type="recordsStore.getActivityTypeColor(record.activityType)"
-                    size="small"
-                  >
-                    {{ recordsStore.getActivityTypeLabel(record.activityType) }}
-                  </el-tag>
-                </div>
-                <div class="recent-desc">{{ getActivityDescription(record) }}</div>
-              </div>
-              <div class="recent-time">{{ formatRelativeTime(record.activityTime) }}</div>
-            </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ recordsStore.statistics?.totalWordQueries || 0 }}</span>
+            <span class="stat-label">{{ t('dashboard.wordsLearned') }}</span>
           </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+            <el-icon :size="24"><ChatDotRound /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ recordsStore.statistics?.totalDialogueSessions || 0 }}</span>
+            <span class="stat-label">{{ t('dashboard.conversations') }}</span>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;">
+            <el-icon :size="24"><Document /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ recordsStore.statistics?.totalQuizzes || 0 }}</span>
+            <span class="stat-label">{{ t('dashboard.quizzesTaken') }}</span>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fef2f2; color: #ef4444;">
+            <el-icon :size="24"><Trophy /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ Math.round(recordsStore.statistics?.averageQuizScore || 0) }}%</span>
+            <span class="stat-label">{{ t('dashboard.avgScore') }}</span>
+          </div>
+        </div>
+      </section>
 
-          <!-- Empty State -->
-          <el-empty
-            v-else
-            description="No activities yet. Start learning to see your progress!"
-            :image-size="100"
+      <!-- Quick Access -->
+      <section class="quick-access">
+        <div class="section-header">
+          <h3>{{ t('dashboard.quickAccess') }}</h3>
+          <span class="section-subtitle">{{ t('dashboard.startNow') }}</span>
+        </div>
+        <div class="features-grid">
+          <div 
+            v-for="feature in features" 
+            :key="feature.key"
+            class="feature-card"
+            @click="navigateTo(feature.route)"
           >
-            <el-button type="primary" @click="navigateTo('/word-query')">
-              Start Learning
-            </el-button>
-          </el-empty>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- Learning Tips Section -->
-    <el-row :gutter="20" class="tips-section">
-      <el-col :span="24">
-        <el-card class="tips-card">
-          <div class="tips-content">
-            <el-icon class="tips-icon" :size="24"><InfoFilled /></el-icon>
-            <div class="tips-text">
-              <strong>Learning Tip:</strong> Consistent practice is key! Try to complete at least one activity each day to maintain your progress.
+            <div class="feature-icon" :style="{ background: feature.bgColor, color: feature.color }">
+              <el-icon :size="28">
+                <Search v-if="feature.icon === 'Search'" />
+                <ChatDotRound v-else-if="feature.icon === 'ChatDotRound'" />
+                <Document v-else-if="feature.icon === 'Document'" />
+                <DataLine v-else />
+              </el-icon>
             </div>
+            <div class="feature-info">
+              <span class="feature-name">{{ t(`features.${feature.key}`) }}</span>
+              <span class="feature-desc">{{ t(`features.${feature.key}Desc`) }}</span>
+            </div>
+            <el-icon class="feature-arrow"><ArrowRight /></el-icon>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </section>
+
+      <!-- Recent Activities -->
+      <section class="recent-activities">
+        <div class="section-header">
+          <h3>{{ t('dashboard.recentActivities') }}</h3>
+          <el-button type="primary" link @click="navigateTo('/records')">
+            {{ t('common.viewAll') }} <el-icon><ArrowRight /></el-icon>
+          </el-button>
+        </div>
+        
+        <div v-if="recordsStore.loading" class="loading-state">
+          <el-skeleton :rows="3" animated />
+        </div>
+        
+        <div v-else-if="recordsStore.hasRecords" class="activities-list">
+          <div
+            v-for="record in recordsStore.records.slice(0, 5)"
+            :key="record.id"
+            class="activity-item"
+          >
+            <div class="activity-icon">
+              <el-icon :size="18">
+                <Search v-if="record.activityType === 'WORD_QUERY'" />
+                <ChatDotRound v-else-if="record.activityType === 'DIALOGUE'" />
+                <Document v-else />
+              </el-icon>
+            </div>
+            <div class="activity-content">
+              <el-tag 
+                :type="recordsStore.getActivityTypeColor(record.activityType)"
+                size="small"
+                effect="light"
+              >
+                {{ recordsStore.getActivityTypeLabel(record.activityType) }}
+              </el-tag>
+              <span class="activity-desc">{{ getActivityDescription(record) }}</span>
+            </div>
+            <span class="activity-time">{{ formatRelativeTime(record.activityTime) }}</span>
+          </div>
+        </div>
+        
+        <el-empty
+          v-else
+          :description="t('dashboard.noActivities')"
+          :image-size="80"
+        >
+          <el-button type="primary" @click="navigateTo('/word-query')">
+            {{ t('common.startLearning') }}
+          </el-button>
+        </el-empty>
+      </section>
+    </main>
   </div>
 </template>
 
 <style scoped>
 .dashboard-page {
-  padding: 20px;
-  min-height: calc(100vh - 100px);
-  background-color: #f5f7fa;
-}
-
-/* Welcome Section */
-.welcome-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  margin-bottom: 20px;
-}
-
-.welcome-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: white;
+  min-height: 100vh;
+  background: var(--bg-primary);
 }
 
-.welcome-text h1 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.logo-text {
+  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
-.welcome-text p {
-  margin: 0;
-  opacity: 0.9;
-}
-
-.welcome-stats {
-  text-align: right;
-}
-
-.mini-stat {
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 4px;
 }
 
-.mini-stat-value {
-  font-size: 32px;
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-inverse);
+}
+
+.nav-item.active {
+  background: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.logout:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 24px 32px;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: var(--font-size-2xl);
   font-weight: 700;
+  color: var(--text-primary);
 }
 
-.mini-stat-label {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* Statistics Section */
-.stats-section {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  height: 100%;
-  cursor: default;
-}
-
-.stat-content {
+.header-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 8px 0;
 }
 
-.stat-icon {
-  padding: 12px;
-  border-radius: 12px;
+.user-avatar {
+  background: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
-.word-icon {
-  background-color: #ecf5ff;
-  color: #409eff;
+/* Welcome Banner */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  color: var(--text-inverse);
 }
 
-.dialogue-icon {
-  background-color: #f0f9eb;
-  color: #67c23a;
+.welcome-content h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.quiz-icon {
-  background-color: #fdf6ec;
-  color: #e6a23c;
+.welcome-content p {
+  opacity: 0.9;
+  font-size: var(--font-size-sm);
 }
 
-.score-icon {
-  background-color: #fef0f0;
-  color: #f56c6c;
+.welcome-stat {
+  text-align: right;
 }
 
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 28px;
+.stat-number {
+  display: block;
+  font-size: 48px;
   font-weight: 700;
-  color: #303133;
-  line-height: 1.2;
+  color: var(--color-accent);
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #909399;
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
 }
 
-/* Section Headers */
-.section-header {
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color-light);
 }
 
-.section-subtitle {
-  font-size: 14px;
-  font-weight: normal;
-  color: #909399;
-}
-
-/* Features Section */
-.features-section {
-  margin-bottom: 20px;
-}
-
-.feature-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 16px;
-  border-radius: 12px;
-  background-color: #fafafa;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-align: center;
-}
-
-.feature-card:hover {
-  background-color: #f0f2f5;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-info .stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+/* Quick Access */
+.quick-access {
+  margin-bottom: 32px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.feature-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-color-light);
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent);
+}
+
+.feature-icon {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
-  margin-bottom: 12px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .feature-info {
-  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .feature-name {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   font-weight: 600;
-  color: #303133;
-  margin-bottom: 4px;
+  color: var(--text-primary);
 }
 
 .feature-desc {
-  font-size: 12px;
-  color: #909399;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
 }
 
-/* Recent Activities Section */
-.recent-section {
-  margin-bottom: 20px;
+.feature-arrow {
+  color: var(--text-light);
+  transition: transform var(--transition-fast);
 }
 
-.loading-container {
-  padding: 20px;
+.feature-card:hover .feature-arrow {
+  transform: translateX(4px);
+  color: var(--color-accent);
 }
 
-.recent-list {
+/* Recent Activities */
+.recent-activities {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--border-color-light);
+}
+
+.loading-state {
+  padding: 20px 0;
+}
+
+.activities-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.recent-item {
+.activity-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background-color: #fafafa;
-  border-radius: 8px;
-  transition: all 0.3s;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
 }
 
-.recent-item:hover {
-  background-color: #f5f7fa;
+.activity-item:hover {
+  background: var(--border-color-light);
 }
 
-.recent-icon {
-  flex-shrink: 0;
-  padding: 8px;
-  border-radius: 8px;
-  background-color: #fff;
+.activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
 }
 
-.activity-icon.word_query-icon {
-  color: #409eff;
-}
-
-.activity-icon.dialogue-icon {
-  color: #67c23a;
-}
-
-.activity-icon.quiz-icon {
-  color: #e6a23c;
-}
-
-.recent-content {
+.activity-content {
   flex: 1;
-  min-width: 0;
-}
-
-.recent-type {
-  margin-bottom: 4px;
-}
-
-.recent-desc {
-  font-size: 14px;
-  color: #606266;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.recent-time {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: #909399;
-}
-
-/* Tips Section */
-.tips-section {
-  margin-bottom: 20px;
-}
-
-.tips-card {
-  background-color: #f0f9eb;
-  border: 1px solid #e1f3d8;
-}
-
-.tips-content {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.tips-icon {
-  color: #67c23a;
-  flex-shrink: 0;
+.activity-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
-.tips-text {
-  font-size: 14px;
-  color: #606266;
+.activity-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
-/* Responsive adjustments */
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .welcome-content {
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+  
+  .welcome-banner {
     flex-direction: column;
     text-align: center;
-    gap: 16px;
+    gap: 20px;
   }
   
-  .welcome-stats {
+  .welcome-stat {
     text-align: center;
   }
   
-  .stat-content {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .feature-card {
-    margin-bottom: 12px;
-  }
-  
-  .recent-item {
-    flex-wrap: wrap;
-  }
-  
-  .recent-time {
-    width: 100%;
-    text-align: right;
-    margin-top: 4px;
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>

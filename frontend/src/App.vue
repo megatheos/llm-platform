@@ -1,21 +1,26 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import AppLayout from '@/components/AppLayout.vue'
+
+const route = useRoute()
+
+const useAppLayout = computed(() => {
+  return route.meta.layout === 'app'
+})
 </script>
 
 <template>
-  <RouterView />
+  <AppLayout v-if="useAppLayout">
+    <RouterView />
+  </AppLayout>
+  <RouterView v-else />
 </template>
 
 <style>
 #app {
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  padding: 0;
 }
 </style>

@@ -7,7 +7,7 @@ import type { Result, Quiz, QuizAnswer, QuizResult, DifficultyLevel } from '@/ty
  * @returns Generated quiz with questions
  */
 export function generateQuiz(difficulty: DifficultyLevel): Promise<Result<Quiz>> {
-  return request.post('/quiz/generate', { difficulty }).then(res => res.data)
+  return request.post('/quiz/generate', { difficulty: difficulty.toUpperCase() }).then(res => res.data)
 }
 
 /**
