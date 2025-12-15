@@ -139,7 +139,7 @@ class DialogueServicePropertyTest {
             int messageCount = messageCounts.sample();
             
             // Start a session
-            DialogueSessionVO session = dialogueService.startSession(testScenario.getId(), userId);
+            DialogueSessionVO session = dialogueService.startSession(testScenario.getId(), "en", userId);
             assertThat(session).isNotNull();
             assertThat(session.getMessages()).isEmpty();
 
@@ -215,7 +215,7 @@ class DialogueServicePropertyTest {
             int messageCount = messageCounts.sample();
             
             // Start a session
-            DialogueSessionVO session = dialogueService.startSession(testScenario.getId(), userId);
+            DialogueSessionVO session = dialogueService.startSession(testScenario.getId(), "en", userId);
             assertThat(session).isNotNull();
 
             // Add messages to the session

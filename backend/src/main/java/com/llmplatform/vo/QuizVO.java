@@ -17,6 +17,8 @@ public class QuizVO {
     
     private String difficulty;
     
+    private String targetLang;
+    
     private List<QuestionVO> questions;
     
     private Integer totalScore;

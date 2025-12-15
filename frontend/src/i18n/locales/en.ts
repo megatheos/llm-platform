@@ -108,6 +108,7 @@ export default {
   },
   dialogue: {
     title: 'Dialogue Practice',
+    targetLang: 'Practice Language',
     selectScenario: 'Select Scenario',
     selectScenarioHint: 'Select a scenario to start practicing conversations',
     presetScenarios: 'Preset Scenarios',
@@ -143,13 +144,29 @@ export default {
       travel: 'Travel',
       business: 'Business',
       daily: 'Daily Life',
+      daily_life: 'Daily Life',
       academic: 'Academic',
       custom: 'Custom'
+    },
+    scenarios: {
+      'Airport Check-in': { name: 'Airport Check-in', description: 'Practice conversations at airport check-in counters' },
+      'Hotel Reservation': { name: 'Hotel Reservation', description: 'Practice booking and checking into hotels' },
+      'Restaurant Ordering': { name: 'Restaurant Ordering', description: 'Practice ordering food at restaurants' },
+      'Business Meeting': { name: 'Business Meeting', description: 'Practice formal business meeting conversations' },
+      'Job Interview': { name: 'Job Interview', description: 'Practice job interview scenarios' },
+      'Email Writing': { name: 'Email Writing', description: 'Practice writing professional emails' },
+      'Shopping': { name: 'Shopping', description: 'Practice shopping conversations' },
+      'Doctor Visit': { name: 'Doctor Visit', description: 'Practice medical appointment conversations' },
+      'Making Friends': { name: 'Making Friends', description: 'Practice casual conversations and introductions' },
+      'Academic Discussion': { name: 'Academic Discussion', description: 'Practice academic discussions and debates' },
+      'Presentation': { name: 'Presentation', description: 'Practice giving academic presentations' },
+      'Research Collaboration': { name: 'Research Collaboration', description: 'Practice research collaboration discussions' }
     }
   },
   quiz: {
     title: 'Language Quiz',
     subtitle: 'Test your language knowledge with AI-generated quizzes',
+    targetLang: 'Quiz Language',
     startNewQuiz: 'Start New Quiz',
     selectDifficulty: 'Select Difficulty Level',
     easy: 'Easy',

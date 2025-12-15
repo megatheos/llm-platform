@@ -41,10 +41,18 @@ function getActivityDescription(record: LearningRecord): string {
   if (!d) return ''
   switch (record.activityType) {
     case 'WORD_QUERY': return `${t('records.queried')} "${d.word}" (${d.sourceLang} → ${d.targetLang})`
-    case 'DIALOGUE': return `${d.scenarioName} - ${d.messageCount} ${t('records.messages')}`
-    case 'QUIZ': return `${d.difficulty} - ${t('records.score')}: ${d.score}/${d.totalScore}`
+    case 'DIALOGUE': return `${d.scenarioName || ''}`
+    case 'QUIZ': return `${getDifficultyLabel(d.difficulty)} - ${t('records.score')}: ${d.userScore ?? 0}/${d.totalScore}`
     default: return ''
   }
+}
+function getDifficultyLabel(difficulty: string): string {
+  if (!difficulty) return ''
+  const key = difficulty.toLowerCase()
+  if (key === 'easy') return t('quiz.easy')
+  if (key === 'medium') return t('quiz.medium')
+  if (key === 'hard') return t('quiz.hard')
+  return difficulty
 }
 
 function getScorePercentage(score: number, total: number): number { return total ? Math.round((score / total) * 100) : 0 }
@@ -98,7 +106,7 @@ onMounted(async () => { await Promise.all([recordsStore.fetchRecords(), recordsS
             <div class="record-date">{{ formatDate(record.activityTime) }}</div>
           </div>
           <div v-if="record.activityType === 'QUIZ' && record.activityDetails" class="record-score">
-            <el-progress type="circle" :percentage="getScorePercentage((record.activityDetails as any).score, (record.activityDetails as any).totalScore)" :width="50" :stroke-width="4" :color="getScoreColor(getScorePercentage((record.activityDetails as any).score, (record.activityDetails as any).totalScore))" />
+            <el-progress type="circle" :percentage="getScorePercentage((record.activityDetails as any).userScore ?? 0, (record.activityDetails as any).totalScore)" :width="50" :stroke-width="4" :color="getScoreColor(getScorePercentage((record.activityDetails as any).userScore ?? 0, (record.activityDetails as any).totalScore))" />
           </div>
         </div>
       </div>

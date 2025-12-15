@@ -21,10 +21,11 @@ export function createScenario(data: CreateScenarioRequest): Promise<Result<Scen
 /**
  * Start a new dialogue session
  * @param scenarioId ID of the scenario to use
+ * @param targetLang Target language for the dialogue
  * @returns New dialogue session
  */
-export function startSession(scenarioId: number): Promise<Result<DialogueSession>> {
-  return request.post('/dialogue/sessions', { scenarioId }).then(res => res.data)
+export function startSession(scenarioId: number, targetLang: string = 'en'): Promise<Result<DialogueSession>> {
+  return request.post('/dialogue/sessions', { scenarioId, targetLang }).then(res => res.data)
 }
 
 /**

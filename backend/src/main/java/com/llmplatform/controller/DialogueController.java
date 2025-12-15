@@ -73,7 +73,7 @@ public class DialogueController {
             @Valid @RequestBody StartSessionDTO dto,
             @RequestHeader("Authorization") String authHeader) {
         Long userId = extractUserId(authHeader);
-        DialogueSessionVO session = dialogueService.startSession(dto.getScenarioId(), userId);
+        DialogueSessionVO session = dialogueService.startSession(dto.getScenarioId(), dto.getTargetLang(), userId);
         return Result.success(session);
     }
 

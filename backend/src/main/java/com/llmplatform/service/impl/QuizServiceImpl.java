@@ -65,6 +65,7 @@ public class QuizServiceImpl implements QuizService {
         Quiz quiz = new Quiz();
         quiz.setUserId(userId);
         quiz.setDifficulty(difficulty);
+        quiz.setTargetLang(lang);
         quiz.setTotalScore(totalScore);
         quiz.setUserScore(null); // Not yet completed
         quiz.setCreatedAt(LocalDateTime.now());
@@ -335,6 +336,7 @@ public class QuizServiceImpl implements QuizService {
         vo.setId(quiz.getId());
         vo.setUserId(quiz.getUserId());
         vo.setDifficulty(quiz.getDifficulty());
+        vo.setTargetLang(quiz.getTargetLang());
         vo.setQuestions(questions);
         vo.setTotalScore(quiz.getTotalScore());
         vo.setUserScore(quiz.getUserScore());
@@ -350,6 +352,7 @@ public class QuizServiceImpl implements QuizService {
         QuizHistoryVO vo = new QuizHistoryVO();
         vo.setId(quiz.getId());
         vo.setDifficulty(quiz.getDifficulty());
+        vo.setTargetLang(quiz.getTargetLang());
         vo.setTotalScore(quiz.getTotalScore());
         vo.setUserScore(quiz.getUserScore());
         vo.setCreatedAt(quiz.getCreatedAt());

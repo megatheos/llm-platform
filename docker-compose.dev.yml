@@ -1,4 +1,4 @@
-version: '3.8'
+name: llm-platform
 
 # 开发环境配置 - 支持热更新
 # 使用方式: docker-compose -f docker-compose.dev.yml up -d

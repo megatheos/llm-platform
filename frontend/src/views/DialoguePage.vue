@@ -20,6 +20,17 @@ const newScenario = ref<CreateScenarioRequest>({
   category: ''
 })
 
+// Language options
+const languageOptions = [
+  { value: 'en', label: 'English' },
+  { value: 'zh', label: '中文' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'fr', label: 'Français' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' }
+]
+
 // Category options for scenarios
 const categoryOptions = computed(() => [
   { value: 'travel', label: t('dialogue.categories.travel') },
@@ -28,6 +39,22 @@ const categoryOptions = computed(() => [
   { value: 'academic', label: t('dialogue.categories.academic') },
   { value: 'custom', label: t('dialogue.categories.custom') }
 ])
+
+// Get translated scenario name
+function getScenarioName(scenario: Scenario): string {
+  if (!scenario.isPreset) return scenario.name
+  const key = `dialogue.scenarios.${scenario.name}.name`
+  const translated = t(key)
+  return translated === key ? scenario.name : translated
+}
+
+// Get translated scenario description
+function getScenarioDescription(scenario: Scenario): string {
+  if (!scenario.isPreset) return scenario.description
+  const key = `dialogue.scenarios.${scenario.name}.description`
+  const translated = t(key)
+  return translated === key ? scenario.description : translated
+}
 
 // Current scenario info
 const currentScenario = computed(() => {
@@ -140,8 +167,9 @@ function formatTime(timestamp: string): string {
 
 // Get category label
 function getCategoryLabel(category: string): string {
-  const option = categoryOptions.value.find(c => c.value === category)
-  return option ? option.label : category
+  const key = `dialogue.categories.${category}`
+  const translated = t(key)
+  return translated === key ? category : translated
 }
 
 onMounted(() => {
@@ -154,6 +182,12 @@ onMounted(() => {
     <!-- Scenario Selection View -->
     <div v-if="!dialogueStore.hasActiveSession" class="scenario-selection">
       <div class="page-intro">
+        <div class="language-row">
+          <span class="label">{{ t('dialogue.targetLang') }}:</span>
+          <el-select v-model="dialogueStore.targetLang" class="language-select">
+            <el-option v-for="lang in languageOptions" :key="lang.value" :label="lang.label" :value="lang.value" />
+          </el-select>
+        </div>
         <p>{{ t('dialogue.selectScenarioHint') }}</p>
       </div>
 
@@ -187,8 +221,8 @@ onMounted(() => {
                     <el-icon :size="32"><ChatDotRound /></el-icon>
                   </div>
                   <div class="scenario-info">
-                    <h3>{{ scenario.name }}</h3>
-                    <p>{{ scenario.description }}</p>
+                    <h3>{{ getScenarioName(scenario) }}</h3>
+                    <p>{{ getScenarioDescription(scenario) }}</p>
                     <el-tag size="small" type="info">
                       {{ getCategoryLabel(scenario.category) }}
                     </el-tag>
@@ -247,7 +281,7 @@ onMounted(() => {
           <div class="chat-header">
             <div class="chat-info">
               <el-icon><ChatDotRound /></el-icon>
-              <span class="chat-title">{{ currentScenario?.name || t('dialogue.title') }}</span>
+              <span class="chat-title">{{ currentScenario ? getScenarioName(currentScenario) : t('dialogue.title') }}</span>
               <el-tag size="small" type="success">{{ t('dialogue.active') }}</el-tag>
             </div>
             <el-button type="danger" size="small" @click="handleEndSession">
@@ -261,12 +295,12 @@ onMounted(() => {
           <!-- Scenario Description -->
           <div v-if="currentScenario" class="scenario-intro">
             <el-alert
-              :title="currentScenario.name"
+              :title="getScenarioName(currentScenario)"
               type="info"
               :closable="false"
               show-icon
             >
-              {{ currentScenario.description }}
+              {{ getScenarioDescription(currentScenario) }}
             </el-alert>
           </div>
 
@@ -385,6 +419,23 @@ export default {
   text-align: center;
   margin-bottom: 24px;
   color: var(--text-secondary);
+}
+
+.language-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.language-row .label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.language-select {
+  width: 150px;
 }
 
 .scenario-section {

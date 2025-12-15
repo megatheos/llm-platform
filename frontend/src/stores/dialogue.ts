@@ -17,6 +17,7 @@ export const useDialogueStore = defineStore('dialogue', () => {
   const loading = ref(false)
   const sendingMessage = ref(false)
   const error = ref<string | null>(null)
+  const targetLang = ref<string>('en')
 
   // Getters
   const hasActiveSession = computed(() => !!currentSession.value && !currentSession.value.endedAt)
@@ -79,6 +80,13 @@ export const useDialogueStore = defineStore('dialogue', () => {
 
 
   /**
+   * Set target language
+   */
+  function setTargetLang(lang: string) {
+    targetLang.value = lang
+  }
+
+  /**
    * Start a new dialogue session with a scenario
    * @param scenarioId ID of the scenario to use
    * @returns Promise resolving to the new session
@@ -88,7 +96,7 @@ export const useDialogueStore = defineStore('dialogue', () => {
     error.value = null
 
     try {
-      const result = await apiStartSession(scenarioId)
+      const result = await apiStartSession(scenarioId, targetLang.value)
       if (result.code === 0 || result.code === 200) {
         currentSession.value = result.data
         messages.value = result.data.messages || []
@@ -211,6 +219,7 @@ export const useDialogueStore = defineStore('dialogue', () => {
     loading,
     sendingMessage,
     error,
+    targetLang,
     // Getters
     hasActiveSession,
     scenarioCount,
@@ -225,6 +234,7 @@ export const useDialogueStore = defineStore('dialogue', () => {
     endCurrentSession,
     clearSession,
     clearAll,
-    getScenarioById
+    getScenarioById,
+    setTargetLang
   }
 })

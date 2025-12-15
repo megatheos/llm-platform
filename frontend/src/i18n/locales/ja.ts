@@ -108,6 +108,7 @@ export default {
   },
   dialogue: {
     title: '会話練習',
+    targetLang: '練習言語',
     selectScenario: 'シナリオを選択',
     selectScenarioHint: 'シナリオを選択して会話練習を始めましょう',
     presetScenarios: 'プリセットシナリオ',
@@ -143,13 +144,29 @@ export default {
       travel: '旅行',
       business: 'ビジネス',
       daily: '日常生活',
+      daily_life: '日常生活',
       academic: '学術',
       custom: 'カスタム'
+    },
+    scenarios: {
+      'Airport Check-in': { name: '空港チェックイン', description: '空港チェックインカウンターでの会話練習' },
+      'Hotel Reservation': { name: 'ホテル予約', description: 'ホテルの予約とチェックインの練習' },
+      'Restaurant Ordering': { name: 'レストラン注文', description: 'レストランでの注文練習' },
+      'Business Meeting': { name: 'ビジネス会議', description: '正式なビジネス会議の会話練習' },
+      'Job Interview': { name: '就職面接', description: '就職面接シナリオの練習' },
+      'Email Writing': { name: 'メール作成', description: 'ビジネスメールの作成練習' },
+      'Shopping': { name: '買い物', description: '買い物での会話練習' },
+      'Doctor Visit': { name: '病院受診', description: '医療予約での会話練習' },
+      'Making Friends': { name: '友達作り', description: 'カジュアルな会話と自己紹介の練習' },
+      'Academic Discussion': { name: '学術討論', description: '学術的な議論とディベートの練習' },
+      'Presentation': { name: 'プレゼンテーション', description: '学術プレゼンテーションの練習' },
+      'Research Collaboration': { name: '研究協力', description: '研究協力に関する議論の練習' }
     }
   },
   quiz: {
     title: '言語クイズ',
     subtitle: 'AI生成のクイズで言語知識をテスト',
+    targetLang: 'クイズ言語',
     startNewQuiz: '新しいクイズを開始',
     selectDifficulty: '難易度を選択',
     easy: '簡単',

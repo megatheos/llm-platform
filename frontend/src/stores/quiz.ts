@@ -17,6 +17,7 @@ export const useQuizStore = defineStore('quiz', () => {
   const submitting = ref(false)
   const historyLoading = ref(false)
   const error = ref<string | null>(null)
+  const targetLang = ref<string>('en')
 
   // Getters
   const hasActiveQuiz = computed(() => !!currentQuiz.value && !currentQuiz.value.completedAt)
@@ -25,6 +26,13 @@ export const useQuizStore = defineStore('quiz', () => {
   const answeredCount = computed(() => userAnswers.value.size)
   const allQuestionsAnswered = computed(() => answeredCount.value === questionCount.value)
   const historyCount = computed(() => history.value.length)
+
+  /**
+   * Set target language
+   */
+  function setTargetLang(lang: string) {
+    targetLang.value = lang
+  }
 
   /**
    * Generate a new quiz with specified difficulty
@@ -40,7 +48,7 @@ export const useQuizStore = defineStore('quiz', () => {
     userAnswers.value = new Map()
 
     try {
-      const result = await apiGenerateQuiz(difficulty)
+      const result = await apiGenerateQuiz(difficulty, targetLang.value)
       if (result.code === 0 || result.code === 200) {
         currentQuiz.value = result.data
         return result.data
@@ -199,6 +207,7 @@ export const useQuizStore = defineStore('quiz', () => {
     submitting,
     historyLoading,
     error,
+    targetLang,
     // Getters
     hasActiveQuiz,
     isQuizCompleted,
@@ -215,6 +224,7 @@ export const useQuizStore = defineStore('quiz', () => {
     clearQuiz,
     clearAll,
     getDifficultyLabel,
-    getDifficultyType
+    getDifficultyType,
+    setTargetLang
   }
 })

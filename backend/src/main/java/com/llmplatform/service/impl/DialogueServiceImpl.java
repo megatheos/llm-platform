@@ -90,17 +90,20 @@ public class DialogueServiceImpl implements DialogueService {
 
     @Override
     @Transactional
-    public DialogueSessionVO startSession(Long scenarioId, Long userId) {
+    public DialogueSessionVO startSession(Long scenarioId, String targetLang, Long userId) {
         // Verify scenario exists
         Scenario scenario = scenarioMapper.selectById(scenarioId);
         if (scenario == null) {
             throw new BusinessException("SCENARIO_NOT_FOUND", "Scenario not found");
         }
 
+        String lang = targetLang != null ? targetLang : "en";
+
         // Create new session
         DialogueSession session = new DialogueSession();
         session.setUserId(userId);
         session.setScenarioId(scenarioId);
+        session.setTargetLang(lang);
         session.setMessages("[]");
         session.setStartedAt(LocalDateTime.now());
 
@@ -110,10 +113,12 @@ public class DialogueServiceImpl implements DialogueService {
         List<DialogueSessionVO.MessageVO> emptyMessages = new ArrayList<>();
         cacheDialogueContext(session.getId(), emptyMessages);
 
-        log.info("Started dialogue session: {} for user: {} with scenario: {}", 
-                session.getId(), userId, scenarioId);
+        log.info("Started dialogue session: {} for user: {} with scenario: {} in language: {}", 
+                session.getId(), userId, scenarioId, lang);
 
-        return convertToSessionVO(session, scenario.getName());
+        DialogueSessionVO vo = convertToSessionVO(session, scenario.getName());
+        vo.setTargetLang(lang);
+        return vo;
     }
 
 
@@ -149,7 +154,7 @@ public class DialogueServiceImpl implements DialogueService {
         messages.add(userMessage);
 
         // Build AI request with context
-        AIResponse aiResponse = generateAIResponse(scenario, messages);
+        AIResponse aiResponse = generateAIResponse(scenario, messages, session.getTargetLang());
 
         if (!aiResponse.isSuccess()) {
             throw new BusinessException("AI_ERROR", "Failed to generate response: " + aiResponse.getErrorMessage());
@@ -257,14 +262,16 @@ public class DialogueServiceImpl implements DialogueService {
 
     // ==================== Private Helper Methods ====================
 
-    private AIResponse generateAIResponse(Scenario scenario, List<DialogueSessionVO.MessageVO> messages) {
+    private AIResponse generateAIResponse(Scenario scenario, List<DialogueSessionVO.MessageVO> messages, String targetLang) {
+        String lang = targetLang != null ? targetLang : "en";
         String systemMessage = String.format(
-            "You are a language learning assistant helping a user practice conversations in a '%s' scenario. " +
+            "You are a language learning assistant helping a user practice %s conversations in a '%s' scenario. " +
             "Scenario description: %s. " +
-            "Respond naturally and helpfully, keeping the conversation relevant to the scenario. " +
-            "Provide corrections or suggestions when appropriate to help the user improve their language skills.",
-            scenario.getName(),
-            scenario.getDescription() != null ? scenario.getDescription() : scenario.getName()
+            "Respond in %s language naturally and helpfully, keeping the conversation relevant to the scenario. " +
+            "Provide corrections or suggestions when appropriate to help the user improve their %s language skills.",
+            lang, scenario.getName(),
+            scenario.getDescription() != null ? scenario.getDescription() : scenario.getName(),
+            lang, lang
         );
 
         // Convert messages to AI request format

@@ -116,17 +116,25 @@ public class WordServiceImpl implements WordService {
      * Generate word definition and translation via AI
      */
     private Word generateWordViaAI(String word, String sourceLang, String targetLang) {
+        String targetLangName = getLanguageName(targetLang);
+        String sourceLangName = getLanguageName(sourceLang);
+        
         String systemMessage = String.format(
             "You are a language learning assistant. Provide word definitions and translations. " +
             "Respond ONLY with a valid JSON object (no markdown, no code blocks) with these fields: " +
-            "definition (in %s), translation (in %s), examples (array of 2-3 example sentences), pronunciation (phonetic guide).",
-            sourceLang, targetLang
+            "definition (MUST be written in %s, explaining what the word means), " +
+            "translation (the word translated to %s), " +
+            "examples (array of 2-3 objects, each containing 'sentence' which is an example sentence in %s, and 'translation' which is the %s translation of that sentence), " +
+            "pronunciation (phonetic guide).",
+            targetLangName, targetLangName, sourceLangName, targetLangName
         );
 
         String prompt = String.format(
-            "Provide the definition, translation, example sentences, and pronunciation for the word '%s' " +
-            "from %s to %s. Return ONLY a JSON object.",
-            word, sourceLang, targetLang
+            "Word: '%s' (from %s to %s)\n" +
+            "IMPORTANT: The 'definition' field MUST be written entirely in %s (not English unless target is English).\n" +
+            "The 'examples' array must contain objects with 'sentence' (in %s) and 'translation' (in %s).\n" +
+            "Return ONLY a valid JSON object.",
+            word, sourceLangName, targetLangName, targetLangName, sourceLangName, targetLangName
         );
 
         AIRequest request = AIRequest.builder()
@@ -146,6 +154,21 @@ public class WordServiceImpl implements WordService {
         return parseAIResponse(word, sourceLang, targetLang, response.getContent());
     }
 
+    /**
+     * Get full language name from language code
+     */
+    private String getLanguageName(String langCode) {
+        return switch (langCode.toLowerCase()) {
+            case "en" -> "English";
+            case "zh" -> "Chinese";
+            case "ja" -> "Japanese";
+            case "ko" -> "Korean";
+            case "fr" -> "French";
+            case "de" -> "German";
+            case "es" -> "Spanish";
+            default -> langCode;
+        };
+    }
 
     /**
      * Parse AI response into Word entity

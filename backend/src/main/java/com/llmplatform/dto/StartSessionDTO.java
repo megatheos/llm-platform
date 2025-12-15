@@ -11,4 +11,9 @@ public class StartSessionDTO {
 
     @NotNull(message = "Scenario ID is required")
     private Long scenarioId;
+    
+    /**
+     * Optional: target language for the dialogue
+     */
+    private String targetLang;
 }

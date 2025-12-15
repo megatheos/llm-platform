@@ -41,10 +41,11 @@ public interface DialogueService {
      * Start a new dialogue session
      * 
      * @param scenarioId scenario ID
+     * @param targetLang target language for the dialogue
      * @param userId user ID
      * @return created session
      */
-    DialogueSessionVO startSession(Long scenarioId, Long userId);
+    DialogueSessionVO startSession(Long scenarioId, String targetLang, Long userId);
 
     /**
      * Send a message in a dialogue session

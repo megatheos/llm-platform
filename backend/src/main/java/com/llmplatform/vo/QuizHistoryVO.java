@@ -14,6 +14,8 @@ public class QuizHistoryVO {
     
     private String difficulty;
     
+    private String targetLang;
+    
     private Integer totalScore;
     
     private Integer userScore;

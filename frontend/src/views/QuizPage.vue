@@ -11,6 +11,16 @@ const quizStore = useQuizStore()
 const selectedDifficulty = ref<DifficultyLevel>('medium')
 const currentQuestionIndex = ref(0)
 
+const languageOptions = [
+  { value: 'en', label: 'English' },
+  { value: 'zh', label: '中文' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'fr', label: 'Français' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' }
+]
+
 const difficultyOptions = computed(() => [
   { value: 'easy' as DifficultyLevel, label: t('quiz.easy'), description: t('quiz.easyDesc') },
   { value: 'medium' as DifficultyLevel, label: t('quiz.medium'), description: t('quiz.mediumDesc') },
@@ -29,7 +39,16 @@ const progressPercentage = computed(() => {
 
 const selectedAnswer = computed(() => {
   if (!currentQuestion.value) return ''
-  return quizStore.getAnswer(currentQuestion.value.id) || ''
+  return quizStore.getAnswer(currentQuestion.value.questionId) || ''
+})
+
+const correctCount = computed(() => {
+  return quizStore.quizResult?.answerResults?.filter(r => r.isCorrect).length || 0
+})
+
+const wrongCount = computed(() => {
+  const total = quizStore.quizResult?.answerResults?.length || 0
+  return total - correctCount.value
 })
 
 async function handleStartQuiz() {
@@ -45,7 +64,7 @@ async function handleStartQuiz() {
 
 function handleSelectAnswer(answer: string | number | boolean | undefined) {
   if (!currentQuestion.value || answer === undefined) return
-  quizStore.setAnswer(currentQuestion.value.id, String(answer))
+  quizStore.setAnswer(currentQuestion.value.questionId, String(answer))
 }
 
 function handleNextQuestion() {
@@ -76,6 +95,20 @@ function formatDate(dateStr: string): string {
 function getScorePercentage(score: number, total: number): number { return total ? Math.round((score / total) * 100) : 0 }
 function getScoreColor(p: number): string { return p >= 80 ? '#67c23a' : p >= 60 ? '#e6a23c' : '#f56c6c' }
 function getResultMessage(p: number): string { return p >= 80 ? t('quiz.excellent') : p >= 60 ? t('quiz.good') : t('quiz.keepTrying') }
+function getDifficultyLabel(difficulty: string): string {
+  const key = difficulty.toLowerCase()
+  if (key === 'easy') return t('quiz.easy')
+  if (key === 'medium') return t('quiz.medium')
+  if (key === 'hard') return t('quiz.hard')
+  return difficulty
+}
+function getLanguageLabel(lang?: string): string {
+  const langMap: Record<string, string> = {
+    en: 'English', zh: '中文', ja: '日本語', ko: '한국어',
+    fr: 'Français', de: 'Deutsch', es: 'Español'
+  }
+  return langMap[lang || 'en'] || lang || 'English'
+}
 
 onMounted(() => { quizStore.fetchHistory() })
 </script>
@@ -91,6 +124,12 @@ onMounted(() => { quizStore.fetchHistory() })
           <el-card>
             <template #header><div class="card-header"><span>{{ t('quiz.startNewQuiz') }}</span></div></template>
             <div class="difficulty-selection">
+              <div class="language-row">
+                <span class="label">{{ t('quiz.targetLang') }}:</span>
+                <el-select v-model="quizStore.targetLang" class="language-select">
+                  <el-option v-for="lang in languageOptions" :key="lang.value" :label="lang.label" :value="lang.value" />
+                </el-select>
+              </div>
               <h3>{{ t('quiz.selectDifficulty') }}</h3>
               <el-radio-group v-model="selectedDifficulty" class="difficulty-group">
                 <el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :value="opt.value" class="difficulty-option">
@@ -106,7 +145,13 @@ onMounted(() => { quizStore.fetchHistory() })
             <template #header><div class="card-header"><span>{{ t('quiz.recentQuizzes') }}</span><el-badge :value="quizStore.historyCount" /></div></template>
             <el-scrollbar height="300px">
               <div v-for="quiz in quizStore.history" :key="quiz.id" class="history-item">
-                <div class="history-header"><el-tag size="small">{{ quizStore.getDifficultyLabel(quiz.difficulty) }}</el-tag><span>{{ formatDate(quiz.createdAt) }}</span></div>
+                <div class="history-header">
+                  <div class="history-tags">
+                    <el-tag size="small">{{ getDifficultyLabel(quiz.difficulty) }}</el-tag>
+                    <el-tag size="small" type="info">{{ getLanguageLabel(quiz.targetLang) }}</el-tag>
+                  </div>
+                  <span>{{ formatDate(quiz.createdAt) }}</span>
+                </div>
                 <el-progress :percentage="getScorePercentage(quiz.userScore || 0, quiz.totalScore)" :color="getScoreColor(getScorePercentage(quiz.userScore || 0, quiz.totalScore))" />
               </div>
               <el-empty v-if="!quizStore.history.length" :description="t('quiz.noHistory')" :image-size="80" />
@@ -125,12 +170,12 @@ onMounted(() => { quizStore.fetchHistory() })
           </div>
         </template>
         <div class="question-nav">
-          <el-button v-for="(q, i) in quizStore.currentQuiz?.questions" :key="q.id" :type="quizStore.getAnswer(q.id) ? 'success' : i === currentQuestionIndex ? 'primary' : 'default'" circle size="small" @click="handleJumpToQuestion(i)">{{ i + 1 }}</el-button>
+          <el-button v-for="(q, i) in quizStore.currentQuiz?.questions" :key="q.questionId" :type="quizStore.getAnswer(q.questionId) ? 'success' : i === currentQuestionIndex ? 'primary' : 'default'" circle size="small" @click="handleJumpToQuestion(i)">{{ i + 1 }}</el-button>
         </div>
         <div v-if="currentQuestion" class="question-content">
           <h2>{{ currentQuestion.question }}</h2>
           <el-radio-group :model-value="selectedAnswer" class="options-group" @update:model-value="handleSelectAnswer">
-            <el-radio v-for="(opt, i) in currentQuestion.options" :key="i" :value="opt" border class="option-item">{{ String.fromCharCode(65 + i) }}. {{ opt }}</el-radio>
+            <el-radio v-for="(opt, i) in currentQuestion.options" :key="i" :value="String.fromCharCode(65 + i)" border class="option-item">{{ opt }}</el-radio>
           </el-radio-group>
         </div>
         <div class="navigation-buttons">
@@ -145,14 +190,14 @@ onMounted(() => { quizStore.fetchHistory() })
       <el-card>
         <div class="results-content">
           <h1>{{ t('quiz.quizComplete') }}</h1>
-          <el-progress type="circle" :percentage="getScorePercentage(quizStore.quizResult.score, quizStore.quizResult.totalScore)" :width="150" :color="getScoreColor(getScorePercentage(quizStore.quizResult.score, quizStore.quizResult.totalScore))" />
-          <p class="score-text">{{ quizStore.quizResult.score }} / {{ quizStore.quizResult.totalScore }}</p>
+          <el-progress type="circle" :percentage="getScorePercentage(quizStore.quizResult.userScore, quizStore.quizResult.totalScore)" :width="150" :color="getScoreColor(getScorePercentage(quizStore.quizResult.userScore, quizStore.quizResult.totalScore))" />
+          <p class="score-text">{{ quizStore.quizResult.userScore }} / {{ quizStore.quizResult.totalScore }}</p>
           <el-row :gutter="20" class="stats">
-            <el-col :span="8"><div class="stat correct">{{ quizStore.quizResult.correctAnswers }}<span>{{ t('quiz.correct') }}</span></div></el-col>
-            <el-col :span="8"><div class="stat wrong">{{ quizStore.quizResult.totalQuestions - quizStore.quizResult.correctAnswers }}<span>{{ t('quiz.wrong') }}</span></div></el-col>
-            <el-col :span="8"><div class="stat total">{{ quizStore.quizResult.totalQuestions }}<span>{{ t('quiz.total') }}</span></div></el-col>
+            <el-col :span="8"><div class="stat correct">{{ correctCount }}<span>{{ t('quiz.correct') }}</span></div></el-col>
+            <el-col :span="8"><div class="stat wrong">{{ wrongCount }}<span>{{ t('quiz.wrong') }}</span></div></el-col>
+            <el-col :span="8"><div class="stat total">{{ quizStore.quizResult.answerResults?.length || 0 }}<span>{{ t('quiz.total') }}</span></div></el-col>
           </el-row>
-          <p class="message">{{ getResultMessage(getScorePercentage(quizStore.quizResult.score, quizStore.quizResult.totalScore)) }}</p>
+          <p class="message">{{ getResultMessage(getScorePercentage(quizStore.quizResult.userScore, quizStore.quizResult.totalScore)) }}</p>
           <el-button type="primary" @click="handleNewQuiz">{{ t('quiz.takeAnother') }}</el-button>
         </div>
       </el-card>
@@ -169,6 +214,9 @@ onMounted(() => { quizStore.fetchHistory() })
 .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
 .difficulty-selection { text-align: center; padding: 20px; }
 .difficulty-selection h3 { margin-bottom: 24px; }
+.language-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px; }
+.language-row .label { font-weight: 500; color: var(--text-secondary); }
+.language-select { width: 150px; }
 .difficulty-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
 .difficulty-option { width: 100%; }
 .difficulty-option :deep(.el-radio-button__inner) { width: 100%; text-align: left; padding: 16px; height: auto; }
@@ -176,7 +224,8 @@ onMounted(() => { quizStore.fetchHistory() })
 .difficulty-label { font-weight: 600; }
 .difficulty-desc { font-size: 13px; color: var(--text-muted); }
 .history-item { padding: 12px; border-bottom: 1px solid var(--border-color-light); }
-.history-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--text-muted); }
+.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-muted); }
+.history-tags { display: flex; gap: 4px; }
 .quiz-active { max-width: 800px; margin: 0 auto; }
 .quiz-header { display: flex; justify-content: space-between; }
 .question-nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--border-color-light); }

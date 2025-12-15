@@ -46,14 +46,27 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
 }
 
-function parseExamples(examples: string): string[] {
+interface ExampleItem {
+  sentence: string
+  translation: string
+}
+
+function parseExamples(examples: string): ExampleItem[] {
   if (!examples) return []
   try {
     const parsed = JSON.parse(examples)
-    if (Array.isArray(parsed)) return parsed
-    return [examples]
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => {
+        if (typeof item === 'object' && item.sentence) {
+          return { sentence: item.sentence, translation: item.translation || '' }
+        }
+        // 兼容旧格式（纯字符串）
+        return { sentence: String(item), translation: '' }
+      })
+    }
+    return [{ sentence: examples, translation: '' }]
   } catch {
-    return examples.split('\n').filter(e => e.trim())
+    return examples.split('\n').filter(e => e.trim()).map(s => ({ sentence: s, translation: '' }))
   }
 }
 
@@ -140,7 +153,8 @@ onMounted(() => {
               <el-descriptions-item :label="t('word.examples')">
                 <ul class="examples-list">
                   <li v-for="(example, index) in parseExamples(wordStore.currentWord.examples)" :key="index">
-                    {{ example }}
+                    <div class="example-sentence">{{ example.sentence }}</div>
+                    <div v-if="example.translation" class="example-translation">{{ example.translation }}</div>
                   </li>
                 </ul>
               </el-descriptions-item>
@@ -175,11 +189,11 @@ onMounted(() => {
                 <el-card
                   shadow="hover"
                   class="history-item"
-                  @click="handleHistoryClick(item.word.word, item.word.sourceLang, item.word.targetLang)"
+                  @click="handleHistoryClick(item.word, item.sourceLang, item.targetLang)"
                 >
-                  <div class="history-word">{{ item.word.word }}</div>
-                  <div class="history-translation">{{ item.word.translation }}</div>
-                  <div class="history-langs">{{ item.word.sourceLang }} → {{ item.word.targetLang }}</div>
+                  <div class="history-word">{{ item.word }}</div>
+                  <div class="history-translation">{{ item.translation }}</div>
+                  <div class="history-langs">{{ item.sourceLang }} → {{ item.targetLang }}</div>
                 </el-card>
               </el-timeline-item>
             </el-timeline>
@@ -209,7 +223,9 @@ export default { components: { Right } }
 .pronunciation { color: var(--text-muted); font-style: italic; }
 .translation-text { font-size: 16px; font-weight: 500; color: var(--color-accent); }
 .examples-list { margin: 0; padding-left: 20px; }
-.examples-list li { margin-bottom: 8px; line-height: 1.6; }
+.examples-list li { margin-bottom: 12px; line-height: 1.6; }
+.example-sentence { color: var(--text-primary); }
+.example-translation { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
 .history-badge { margin-left: 8px; }
 .loading-container { padding: 20px; }
 .history-item { cursor: pointer; transition: all 0.3s; }

@@ -18,6 +18,8 @@ public class Quiz {
     
     private String difficulty;
     
+    private String targetLang;
+    
     private String questions;  // JSON format for quiz questions
     
     private Integer totalScore;

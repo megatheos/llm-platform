@@ -4,10 +4,11 @@ import type { Result, Quiz, QuizAnswer, QuizResult, DifficultyLevel } from '@/ty
 /**
  * Generate a new quiz
  * @param difficulty Quiz difficulty level
+ * @param targetLang Target language for the quiz
  * @returns Generated quiz with questions
  */
-export function generateQuiz(difficulty: DifficultyLevel): Promise<Result<Quiz>> {
-  return request.post('/quiz/generate', { difficulty: difficulty.toUpperCase() }).then(res => res.data)
+export function generateQuiz(difficulty: DifficultyLevel, targetLang: string = 'en'): Promise<Result<Quiz>> {
+  return request.post('/quiz/generate', { difficulty: difficulty.toUpperCase(), targetLang }).then(res => res.data)
 }
 
 /**

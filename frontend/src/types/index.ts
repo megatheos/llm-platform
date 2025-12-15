@@ -57,7 +57,11 @@ export interface WordQueryRequest {
 
 export interface WordHistory {
   id: number
-  word: Word
+  wordId: number
+  word: string
+  sourceLang: string
+  targetLang: string
+  translation: string
   queryTime: string
 }
 
@@ -97,7 +101,7 @@ export interface DialogueSession {
 export type DifficultyLevel = 'easy' | 'medium' | 'hard'
 
 export interface QuizQuestion {
-  id: number
+  questionId: number
   question: string
   options: string[]
   correctAnswer: string
@@ -107,6 +111,7 @@ export interface Quiz {
   id: number
   userId: number
   difficulty: DifficultyLevel
+  targetLang?: string
   questions: QuizQuestion[]
   totalScore: number
   userScore?: number
@@ -121,10 +126,19 @@ export interface QuizAnswer {
 
 export interface QuizResult {
   quizId: number
-  score: number
+  userScore: number
   totalScore: number
-  correctAnswers: number
-  totalQuestions: number
+  difficulty: string
+  answerResults: AnswerResult[]
+  completedAt?: string
+}
+
+export interface AnswerResult {
+  questionId: number
+  question: string
+  userAnswer: string
+  correctAnswer: string
+  isCorrect: boolean
 }
 
 // Learning Record types
@@ -146,15 +160,20 @@ export interface WordActivityDetails {
 }
 
 export interface DialogueActivityDetails {
+  sessionId: number
+  scenarioId: number
   scenarioName: string
-  messageCount: number
-  duration?: number
+  scenarioCategory?: string
+  startedAt?: string
+  endedAt?: string
 }
 
 export interface QuizActivityDetails {
-  difficulty: DifficultyLevel
-  score: number
+  quizId: number
+  difficulty: string
   totalScore: number
+  userScore: number
+  completedAt?: string
 }
 
 export interface LearningRecordsResponse {

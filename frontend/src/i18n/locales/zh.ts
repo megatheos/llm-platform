@@ -108,6 +108,7 @@ export default {
   },
   dialogue: {
     title: '对话练习',
+    targetLang: '练习语言',
     selectScenario: '选择场景',
     selectScenarioHint: '选择一个场景开始对话练习',
     presetScenarios: '预设场景',
@@ -143,13 +144,29 @@ export default {
       travel: '旅行',
       business: '商务',
       daily: '日常生活',
+      daily_life: '日常生活',
       academic: '学术',
       custom: '自定义'
+    },
+    scenarios: {
+      'Airport Check-in': { name: '机场值机', description: '练习机场值机柜台对话' },
+      'Hotel Reservation': { name: '酒店预订', description: '练习酒店预订和入住对话' },
+      'Restaurant Ordering': { name: '餐厅点餐', description: '练习餐厅点餐对话' },
+      'Business Meeting': { name: '商务会议', description: '练习正式商务会议对话' },
+      'Job Interview': { name: '求职面试', description: '练习求职面试场景' },
+      'Email Writing': { name: '邮件写作', description: '练习撰写专业邮件' },
+      'Shopping': { name: '购物', description: '练习购物对话' },
+      'Doctor Visit': { name: '看医生', description: '练习医疗预约对话' },
+      'Making Friends': { name: '交朋友', description: '练习日常交流和自我介绍' },
+      'Academic Discussion': { name: '学术讨论', description: '练习学术讨论和辩论' },
+      'Presentation': { name: '演讲展示', description: '练习学术演讲' },
+      'Research Collaboration': { name: '科研合作', description: '练习科研合作讨论' }
     }
   },
   quiz: {
     title: '语言测验',
     subtitle: '通过AI生成的测验测试您的语言知识',
+    targetLang: '测验语言',
     startNewQuiz: '开始新测验',
     selectDifficulty: '选择难度等级',
     easy: '简单',

@@ -19,6 +19,8 @@ public class DialogueSessionVO {
 
     private String scenarioName;
 
+    private String targetLang;
+
     private List<MessageVO> messages;
 
     private LocalDateTime startedAt;

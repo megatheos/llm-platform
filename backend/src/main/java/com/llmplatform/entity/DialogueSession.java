@@ -18,6 +18,8 @@ public class DialogueSession {
     
     private Long scenarioId;
     
+    private String targetLang;  // Target language for the dialogue
+    
     private String messages;  // JSON format for conversation history
     
     private LocalDateTime startedAt;
