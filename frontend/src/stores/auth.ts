@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as apiLogin, register as apiRegister, logout as apiLogout } from '@/api/auth'
+import { login as apiLogin, register as apiRegister, logout as apiLogout, getCurrentUser } from '@/api/auth'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -69,6 +69,25 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * Initialize auth state - fetch user info if token exists
+   * @returns Promise resolving when initialization completes
+   */
+  async function initAuth(): Promise<void> {
+    if (token.value && !user.value) {
+      try {
+        const result = await getCurrentUser()
+        if (result.code === 0 || result.code === 200) {
+          setUser(result.data)
+        } else {
+          clearAuth()
+        }
+      } catch {
+        clearAuth()
+      }
+    }
+  }
+
+  /**
    * Logout current user
    * @returns Promise resolving when logout completes
    */
@@ -95,6 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     login,
     register,
-    logout
+    logout,
+    initAuth
   }
 })

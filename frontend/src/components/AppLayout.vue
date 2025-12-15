@@ -83,6 +83,7 @@ async function handleLogout() {
         <div class="header-right">
           <LanguageSwitcher />
           <div class="user-info">
+            <span class="user-name">{{ authStore.user?.username || '' }}</span>
             <el-avatar :size="36" class="user-avatar">
               {{ authStore.user?.username?.charAt(0).toUpperCase() || 'U' }}
             </el-avatar>
@@ -212,6 +213,18 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .user-avatar {

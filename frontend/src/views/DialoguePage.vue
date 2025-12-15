@@ -160,8 +160,17 @@ async function handleCreateScenario() {
 }
 
 // Format timestamp for display
-function formatTime(timestamp: string): string {
-  const date = new Date(timestamp)
+function formatTime(timestamp: string | number[] | undefined): string {
+  if (!timestamp) return ''
+  let date: Date
+  if (Array.isArray(timestamp)) {
+    // Handle LocalDateTime array format [year, month, day, hour, minute, second, nano]
+    const [year, month, day, hour = 0, minute = 0] = timestamp
+    date = new Date(year, month - 1, day, hour, minute)
+  } else {
+    date = new Date(timestamp)
+  }
+  if (isNaN(date.getTime())) return ''
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
