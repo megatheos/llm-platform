@@ -9,6 +9,7 @@ import com.llmplatform.ai.dto.AIRequest;
 import com.llmplatform.ai.dto.AIResponse;
 import com.llmplatform.ai.gateway.AIGateway;
 import com.llmplatform.common.ActivityType;
+import com.llmplatform.common.CacheConstants;
 import com.llmplatform.dto.SubmitAnswersDTO;
 import com.llmplatform.entity.LearningRecord;
 import com.llmplatform.entity.Quiz;
@@ -16,6 +17,7 @@ import com.llmplatform.exception.BusinessException;
 import com.llmplatform.mapper.LearningRecordMapper;
 import com.llmplatform.mapper.QuizMapper;
 import com.llmplatform.service.QuizService;
+import com.llmplatform.util.CacheUtil;
 import com.llmplatform.vo.QuizHistoryVO;
 import com.llmplatform.vo.QuizResultVO;
 import com.llmplatform.vo.QuizVO;
@@ -42,6 +44,7 @@ public class QuizServiceImpl implements QuizService {
     private final LearningRecordMapper learningRecordMapper;
     private final AIGateway aiGateway;
     private final ObjectMapper objectMapper;
+    private final CacheUtil cacheUtil;
 
     private static final int DEFAULT_QUESTION_COUNT = 5;
 
@@ -290,6 +293,10 @@ public class QuizServiceImpl implements QuizService {
         record.setActivityId(quiz.getId());
         record.setActivityTime(LocalDateTime.now());
         learningRecordMapper.insert(record);
+        
+        // Invalidate statistics cache
+        String cacheKey = CacheConstants.statsKey(userId);
+        cacheUtil.delete(cacheKey);
     }
 
     /**

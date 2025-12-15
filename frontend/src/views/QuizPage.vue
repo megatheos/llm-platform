@@ -32,11 +32,6 @@ const currentQuestion = computed<QuizQuestion | null>(() => {
   return quizStore.currentQuiz.questions[currentQuestionIndex.value] || null
 })
 
-const progressPercentage = computed(() => {
-  if (!quizStore.questionCount) return 0
-  return Math.round((quizStore.answeredCount / quizStore.questionCount) * 100)
-})
-
 const selectedAnswer = computed(() => {
   if (!currentQuestion.value) return ''
   return quizStore.getAnswer(currentQuestion.value.questionId) || ''

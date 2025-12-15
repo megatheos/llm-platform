@@ -12,6 +12,8 @@ import com.llmplatform.vo.LoginVO;
 import com.llmplatform.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,6 +113,16 @@ public class UserServiceImpl implements UserService {
         // Check if token is in blacklist
         String key = TOKEN_BLACKLIST_PREFIX + token;
         return Boolean.FALSE.equals(redisTemplate.hasKey(key));
+    }
+
+    @Override
+    public UserVO getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("UNAUTHORIZED", "User not authenticated");
+        }
+        Long userId = (Long) authentication.getPrincipal();
+        return getUserById(userId);
     }
 
     private UserVO convertToVO(User user) {

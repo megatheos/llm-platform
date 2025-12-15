@@ -218,6 +218,10 @@ public class DialogueServiceImpl implements DialogueService {
         record.setActivityTime(LocalDateTime.now());
         learningRecordMapper.insert(record);
 
+        // Invalidate statistics cache
+        String statsCacheKey = CacheConstants.statsKey(userId);
+        cacheUtil.delete(statsCacheKey);
+
         log.info("Ended dialogue session: {} for user: {}", sessionId, userId);
     }
 

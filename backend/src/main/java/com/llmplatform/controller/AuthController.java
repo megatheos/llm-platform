@@ -48,6 +48,18 @@ public class AuthController {
     }
 
     /**
+     * Get current user information
+     * GET /api/auth/me
+     * 
+     * @return current user information
+     */
+    @GetMapping("/me")
+    public Result<UserVO> getCurrentUser() {
+        UserVO user = userService.getCurrentUser();
+        return Result.success(user);
+    }
+
+    /**
      * User logout - invalidates the current session token
      * POST /api/auth/logout
      * 

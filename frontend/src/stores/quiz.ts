@@ -107,7 +107,7 @@ export const useQuizStore = defineStore('quiz', () => {
         quizResult.value = result.data
         // Update current quiz with completion info
         if (currentQuiz.value) {
-          currentQuiz.value.userScore = result.data.score
+          currentQuiz.value.userScore = result.data.userScore
           currentQuiz.value.completedAt = new Date().toISOString()
         }
         // Refresh history after submission

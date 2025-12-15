@@ -43,6 +43,12 @@ public interface UserService {
     UserVO getUserById(Long userId);
     
     /**
+     * Get current logged-in user
+     * @return current user info
+     */
+    UserVO getCurrentUser();
+    
+    /**
      * Check if token is valid (not blacklisted)
      * @param token JWT token
      * @return true if valid

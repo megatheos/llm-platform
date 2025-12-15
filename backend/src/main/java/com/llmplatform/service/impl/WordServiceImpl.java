@@ -242,6 +242,10 @@ public class WordServiceImpl implements WordService {
         record.setActivityId(wordId);
         record.setActivityTime(LocalDateTime.now());
         learningRecordMapper.insert(record);
+        
+        // Invalidate statistics cache
+        String statsCacheKey = CacheConstants.statsKey(userId);
+        cacheUtil.delete(statsCacheKey);
     }
 
     /**

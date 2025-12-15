@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-const { locale, t } = useI18n()
+const { locale } = useI18n()
 
 const languages = [
   { code: 'zh', name: '中文', flag: '🇨🇳' },
