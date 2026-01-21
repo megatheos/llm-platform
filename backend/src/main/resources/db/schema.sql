@@ -131,3 +131,137 @@ INSERT INTO `scenario` (`name`, `description`, `category`, `is_preset`, `created
 ('Academic Discussion', 'Practice academic discussions and debates', 'academic', 1, NULL),
 ('Presentation', 'Practice giving academic presentations', 'academic', 1, NULL),
 ('Research Collaboration', 'Practice research collaboration discussions', 'academic', 1, NULL);
+
+-- =====================================================
+-- Personalized Learning System Tables
+-- =====================================================
+
+-- Memory records table (间隔重复记忆记录表)
+CREATE TABLE IF NOT EXISTS `memory_records` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `user_id` BIGINT NOT NULL COMMENT 'User ID',
+    `word_id` BIGINT NOT NULL COMMENT 'Word ID',
+    `mastery_level` INT NOT NULL DEFAULT 0 COMMENT 'Mastery level (0-100)',
+    `last_review_time` DATETIME DEFAULT NULL COMMENT 'Last review time',
+    `next_review_time` DATETIME DEFAULT NULL COMMENT 'Next review time',
+    `review_count` INT NOT NULL DEFAULT 0 COMMENT 'Review count',
+    `correct_count` INT NOT NULL DEFAULT 0 COMMENT 'Correct answer count',
+    `wrong_count` INT NOT NULL DEFAULT 0 COMMENT 'Wrong answer count',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'LEARNING' COMMENT 'Status: LEARNING, MASTERED, FORGOTTEN',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_word` (`user_id`, `word_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_next_review` (`next_review_time`),
+    INDEX `idx_status` (`user_id`, `status`),
+    CONSTRAINT `fk_memory_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Memory records table for spaced repetition';
+
+-- Learning profiles table (学习档案表)
+CREATE TABLE IF NOT EXISTS `learning_profiles` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `user_id` BIGINT NOT NULL UNIQUE COMMENT 'User ID',
+    `preferred_learning_times` JSON COMMENT 'Preferred learning times JSON',
+    `weak_areas` JSON COMMENT 'Weak areas JSON',
+    `average_daily_words` DECIMAL(10,2) DEFAULT NULL COMMENT 'Average daily words learned',
+    `average_accuracy` DECIMAL(5,2) DEFAULT NULL COMMENT 'Average accuracy rate',
+    `learning_speed_trend` VARCHAR(20) DEFAULT NULL COMMENT 'Learning speed trend: FAST, NORMAL, SLOW',
+    `last_analysis_time` DATETIME DEFAULT NULL COMMENT 'Last analysis time',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_id` (`user_id`),
+    CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Learning profiles table';
+
+-- Study plans table (学习计划表)
+CREATE TABLE IF NOT EXISTS `study_plans` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `user_id` BIGINT NOT NULL COMMENT 'User ID',
+    `goal_type` VARCHAR(20) NOT NULL COMMENT 'Goal type: EXAM, TRAVEL, BUSINESS, DAILY',
+    `target_date` DATE DEFAULT NULL COMMENT 'Target completion date',
+    `daily_task_count` INT NOT NULL COMMENT 'Daily task count',
+    `current_phase` VARCHAR(20) DEFAULT NULL COMMENT 'Current phase: BEGINNER, INTERMEDIATE, ADVANCED',
+    `completion_rate` DECIMAL(5,2) DEFAULT NULL COMMENT 'Completion rate',
+    `adjustment_history` JSON COMMENT 'Adjustment history JSON',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_target_date` (`target_date`),
+    CONSTRAINT `fk_plan_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Study plans table';
+
+-- Daily tasks table (每日任务表)
+CREATE TABLE IF NOT EXISTS `daily_tasks` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `plan_id` BIGINT NOT NULL COMMENT 'Plan ID',
+    `user_id` BIGINT NOT NULL COMMENT 'User ID',
+    `task_date` DATE NOT NULL COMMENT 'Task date',
+    `task_type` VARCHAR(20) NOT NULL COMMENT 'Task type: VOCABULARY, GRAMMAR, DIALOGUE, REVIEW',
+    `content` JSON COMMENT 'Task content JSON',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'Status: PENDING, IN_PROGRESS, COMPLETED',
+    `total_items` INT NOT NULL COMMENT 'Total items in task',
+    `completed_items` INT NOT NULL DEFAULT 0 COMMENT 'Completed items count',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    `completed_time` DATETIME DEFAULT NULL COMMENT 'Completion time',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_date` (`user_id`, `task_date`),
+    INDEX `idx_plan_id` (`plan_id`),
+    INDEX `idx_status` (`status`),
+    CONSTRAINT `fk_task_plan` FOREIGN KEY (`plan_id`) REFERENCES `study_plans` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily tasks table';
+
+-- Achievements table (成就表)
+CREATE TABLE IF NOT EXISTS `achievements` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `code` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Achievement code',
+    `name` VARCHAR(100) NOT NULL COMMENT 'Achievement name',
+    `description` VARCHAR(255) DEFAULT NULL COMMENT 'Achievement description',
+    `icon_url` VARCHAR(255) DEFAULT NULL COMMENT 'Icon URL',
+    `category` VARCHAR(20) NOT NULL COMMENT 'Category: STREAK, MILESTONE, MASTERY',
+    `required_value` INT NOT NULL COMMENT 'Required value (days, words count, etc)',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Achievements table';
+
+-- User achievements table (用户成就表)
+CREATE TABLE IF NOT EXISTS `user_achievements` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `user_id` BIGINT NOT NULL COMMENT 'User ID',
+    `achievement_id` BIGINT NOT NULL COMMENT 'Achievement ID',
+    `unlocked_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Unlock time',
+    `is_notified` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether notification was sent',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_achievement` (`user_id`, `achievement_id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_achievement_id` (`achievement_id`),
+    CONSTRAINT `fk_ua_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ua_achievement` FOREIGN KEY (`achievement_id`) REFERENCES `achievements` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User achievements table';
+
+-- Learning streaks table (学习连续记录表)
+CREATE TABLE IF NOT EXISTS `learning_streaks` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `user_id` BIGINT NOT NULL UNIQUE COMMENT 'User ID',
+    `current_streak` INT NOT NULL DEFAULT 0 COMMENT 'Current streak days',
+    `longest_streak` INT NOT NULL DEFAULT 0 COMMENT 'Longest streak days',
+    `last_learning_date` DATE DEFAULT NULL COMMENT 'Last learning date',
+    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_id` (`user_id`),
+    CONSTRAINT `fk_streak_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Learning streaks table';
+
+-- Insert predefined achievements
+INSERT INTO `achievements` (`code`, `name`, `description`, `icon_url`, `category`, `required_value`) VALUES
+('STREAK_7', '坚持一周', '连续学习7天', 'streak_7.png', 'STREAK', 7),
+('STREAK_30', '坚持一月', '连续学习30天', 'streak_30.png', 'STREAK', 30),
+('STREAK_100', '百日坚持', '连续学习100天', 'streak_100.png', 'STREAK', 100),
+('WORDS_100', '百词斩', '掌握100个词汇', 'words_100.png', 'MILESTONE', 100),
+('WORDS_500', '词汇达人', '掌握500个词汇', 'words_500.png', 'MILESTONE', 500),
+('WORDS_1000', '词汇大师', '掌握1000个词汇', 'words_1000.png', 'MILESTONE', 1000),
+('ACCURACY_90', '精准学习', '正确率达到90%', 'accuracy_90.png', 'MASTERY', 90),
+('REVIEW_100', '复习达人', '完成100次复习', 'review_100.png', 'MILESTONE', 100);

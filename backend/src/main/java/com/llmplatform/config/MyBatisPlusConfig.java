@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@MapperScan("com.llmplatform.mapper")
+@MapperScan({"com.llmplatform.mapper", "com.llmplatform.personalized.mapper"})
 public class MyBatisPlusConfig {
 
     /**

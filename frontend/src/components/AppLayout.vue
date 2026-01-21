@@ -9,7 +9,11 @@ import {
   Document,
   DataLine,
   SwitchButton,
-  HomeFilled
+  HomeFilled,
+  Refresh,
+  View,
+  List,
+  Trophy
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
@@ -22,7 +26,11 @@ const navItems = [
   { key: 'wordQuery', icon: 'Search', route: '/word-query' },
   { key: 'dialogue', icon: 'ChatDotRound', route: '/dialogue' },
   { key: 'quiz', icon: 'Document', route: '/quiz' },
-  { key: 'records', icon: 'DataLine', route: '/records' }
+  { key: 'records', icon: 'DataLine', route: '/records' },
+  { key: 'review', icon: 'Refresh', route: '/review' },
+  { key: 'insights', icon: 'View', route: '/insights' },
+  { key: 'plan', icon: 'List', route: '/plan' },
+  { key: 'achievements', icon: 'Trophy', route: '/achievements' }
 ]
 
 function navigateTo(path: string) {
@@ -45,8 +53,8 @@ async function handleLogout() {
       </div>
       
       <nav class="sidebar-nav">
-        <a 
-          v-for="item in navItems" 
+        <a
+          v-for="item in navItems"
           :key="item.key"
           class="nav-item"
           :class="{ active: route.path === item.route }"
@@ -57,7 +65,11 @@ async function handleLogout() {
             <Search v-else-if="item.icon === 'Search'" />
             <ChatDotRound v-else-if="item.icon === 'ChatDotRound'" />
             <Document v-else-if="item.icon === 'Document'" />
-            <DataLine v-else />
+            <DataLine v-else-if="item.icon === 'DataLine'" />
+            <Refresh v-else-if="item.icon === 'Refresh'" />
+            <View v-else-if="item.icon === 'View'" />
+            <List v-else-if="item.icon === 'List'" />
+            <Trophy v-else-if="item.icon === 'Trophy'" />
           </el-icon>
           <span>{{ t(`nav.${item.key}`) }}</span>
         </a>

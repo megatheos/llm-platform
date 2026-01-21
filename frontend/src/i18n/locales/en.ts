@@ -21,6 +21,11 @@ export default {
     dialogue: 'Dialogue',
     quiz: 'Quiz',
     records: 'Records',
+    review: 'Review',
+    insights: 'Insights',
+    plan: 'Plan',
+    achievements: 'Achievements',
+    learning: 'Personalized Learning',
     logout: 'Logout'
   },
   auth: {
@@ -85,7 +90,9 @@ export default {
     quiz: 'Take a Quiz',
     quizDesc: 'Test your language knowledge',
     records: 'Learning Records',
-    recordsDesc: 'View your learning history'
+    recordsDesc: 'View your learning history',
+    learning: 'Personalized Learning',
+    learningDesc: 'Spaced repetition and progress tracking'
   },
   word: {
     title: 'Word Query',
@@ -220,5 +227,78 @@ export default {
     en: 'English',
     ja: '日本語',
     ko: '한국어'
+  },
+
+  // ============================================
+  // Personalized Learning Page
+  // ============================================
+  learning: {
+    title: 'Personalized Learning',
+    subtitle: 'Your AI-powered learning journey',
+    tabs: {
+      review: 'Review',
+      insights: 'Insights',
+      plan: 'Plan',
+      achievements: 'Achievements'
+    },
+    review: {
+      dueToday: 'Due for Review Today',
+      items: 'items',
+      allDone: 'All caught up! No reviews pending.',
+      submit: 'Submit',
+      skip: 'Skip'
+    },
+    plan: {
+      progress: 'Plan Progress',
+      daysRemaining: '{days} days remaining',
+      goals: 'Learning Goals',
+      dailyTasks: "Today's Tasks"
+    }
+  },
+
+  // ============================================
+  // Motivation System
+  // ============================================
+  motivation: {
+    achievements: 'Achievements',
+    earned: 'Earned',
+    noAchievements: 'No achievements yet',
+    learningHeatmap: 'Learning Heatmap',
+    totalActivities: 'Total Activities',
+    less: 'Less',
+    more: 'More',
+    average: 'Average',
+    yearChange: 'Year Change',
+    activity: 'activity',
+    learningStreak: 'Learning Streak',
+    keepGoing: 'Keep going! You\'re doing great!',
+    atRisk: 'At Risk',
+    broken: 'Broken',
+    longestStreak: 'Longest Streak',
+    totalDays: 'Total Days',
+    lastActivity: 'Last Activity',
+    newRecord: 'New Record!',
+    categories: {
+      learning: 'Learning',
+      streak: 'Streak',
+      mastery: 'Mastery',
+      exploration: 'Exploration',
+      social: 'Social',
+      special: 'Special'
+    },
+    months: {
+      jan: 'Jan',
+      feb: 'Feb',
+      mar: 'Mar',
+      apr: 'Apr',
+      may: 'May',
+      jun: 'Jun',
+      jul: 'Jul',
+      aug: 'Aug',
+      sep: 'Sep',
+      oct: 'Oct',
+      nov: 'Nov',
+      dec: 'Dec'
+    }
   }
 }

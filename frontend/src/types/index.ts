@@ -203,3 +203,6 @@ export interface RecordQueryParams {
   page?: number
   pageSize?: number
 }
+
+// Personalized Learning System Types
+export * from './personalized'

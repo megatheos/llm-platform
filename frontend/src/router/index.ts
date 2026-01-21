@@ -23,7 +23,7 @@ const routes: RouteRecordRaw[] = [
     path: '/dashboard',
     name: 'dashboard',
     component: () => import('@/views/DashboardPage.vue'),
-    meta: { requiresAuth: true, navKey: 'dashboard', layout: 'none' }
+    meta: { requiresAuth: true, navKey: 'dashboard', layout: 'app' }
   },
   {
     path: '/word-query',
@@ -48,6 +48,30 @@ const routes: RouteRecordRaw[] = [
     name: 'records',
     component: () => import('@/views/RecordsPage.vue'),
     meta: { requiresAuth: true, navKey: 'records', layout: 'app' }
+  },
+  {
+    path: '/review',
+    name: 'review',
+    component: () => import('@/views/LearningPage.vue'),
+    meta: { requiresAuth: true, navKey: 'review', layout: 'app', tab: 'review' }
+  },
+  {
+    path: '/insights',
+    name: 'insights',
+    component: () => import('@/views/LearningPage.vue'),
+    meta: { requiresAuth: true, navKey: 'insights', layout: 'app', tab: 'insights' }
+  },
+  {
+    path: '/plan',
+    name: 'plan',
+    component: () => import('@/views/LearningPage.vue'),
+    meta: { requiresAuth: true, navKey: 'plan', layout: 'app', tab: 'plan' }
+  },
+  {
+    path: '/achievements',
+    name: 'achievements',
+    component: () => import('@/views/LearningPage.vue'),
+    meta: { requiresAuth: true, navKey: 'achievements', layout: 'app', tab: 'achievements' }
   }
 ]
 

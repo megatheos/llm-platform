@@ -21,6 +21,11 @@ export default {
     dialogue: '对话练习',
     quiz: '测验',
     records: '学习记录',
+    review: '复习',
+    insights: '洞察',
+    plan: '计划',
+    achievements: '成就',
+    learning: '个性化学习',
     logout: '退出登录'
   },
   auth: {
@@ -85,7 +90,9 @@ export default {
     quiz: '参加测验',
     quizDesc: '测试您的语言知识',
     records: '学习记录',
-    recordsDesc: '查看学习历史'
+    recordsDesc: '查看学习历史',
+    learning: '个性化学习',
+    learningDesc: '间隔重复和进度追踪'
   },
   word: {
     title: '单词查询',
@@ -215,10 +222,239 @@ export default {
     messages: '条消息',
     score: '得分'
   },
-  language: {
+language: {
     zh: '中文',
     en: 'English',
     ja: '日本語',
     ko: '한국어'
+  },
+
+  // ============================================
+  // Memory System (需求 1.6)
+  // ============================================
+  memory: {
+    title: '记忆系统',
+    subtitle: '智能复习管理',
+    review: '复习',
+    reviewCard: '复习卡片',
+    dueToday: '今日待复习',
+    mastered: '已掌握',
+    learning: '学习中',
+    new: '新词',
+    totalItems: '总词数',
+    masteryLevel: '掌握程度',
+    nextReview: '下次复习',
+    reviewNow: '立即复习',
+    skip: '跳过',
+    again: '再学一次',
+    hard: '困难',
+    good: '良好',
+    easy: '简单',
+    statistics: '记忆统计',
+    accuracy: '正确率',
+    streak: '连续复习',
+    days: '天',
+    reviewsCompleted: '已完成复习',
+    averageMastery: '平均掌握度',
+    itemsToReview: '待复习项目',
+    newWords: '新单词',
+    reviewList: '复习列表',
+    noReviewsDue: '今日复习已完成',
+    keepItUp: '保持得很好！',
+    allCaughtUp: '全部完成'
+  },
+
+  // ============================================
+  // Learning Profile (需求 2.5, 2.6)
+  // ============================================
+  profile: {
+    title: '学习档案',
+    subtitle: '了解您的学习状态',
+    insights: '学习洞察',
+    progress: '学习进度',
+    weakAreas: '薄弱领域',
+    strongAreas: '强项领域',
+    totalWords: '累计单词',
+    totalQuizzes: '累计测验',
+    averageScore: '平均分数',
+    studyTime: '学习时长',
+    hours: '小时',
+    minutes: '分钟',
+    learningDays: '学习天数',
+    peakHours: '黄金学习时段',
+    learningStyle: '学习风格',
+    styles: {
+      visual: '视觉型',
+      auditory: '听觉型',
+      reading: '阅读型',
+      kinesthetic: '动觉型',
+      mixed: '混合型'
+    },
+    weeklyProgress: '每周进度',
+    dailyProgress: '每日进度',
+    trends: '学习趋势',
+    recommendations: '学习建议',
+    keepPracticing: '继续练习',
+    focusAreas: '重点关注',
+    categories: {
+      vocabulary: '词汇',
+      grammar: '语法',
+      listening: '听力',
+      speaking: '口语',
+      reading: '阅读',
+      writing: '写作'
+    },
+    improving: '进步中',
+    stable: '保持稳定',
+    declining: '需要加强',
+    noData: '暂无数据',
+    startLearning: '开始学习以获取数据'
+  },
+
+  // ============================================
+  // Study Plan (需求 3.1, 3.7)
+  // ============================================
+  plan: {
+    title: '学习计划',
+    subtitle: '制定您的学习目标',
+    goals: '学习目标',
+    dailyTasks: '每日任务',
+    myPlan: '我的计划',
+    createPlan: '创建计划',
+    editPlan: '编辑计划',
+    activePlan: '进行中的计划',
+    noActivePlan: '暂无进行中的计划',
+    startDate: '开始日期',
+    endDate: '结束日期',
+    status: {
+      draft: '草稿',
+      active: '进行中',
+      paused: '已暂停',
+      completed: '已完成'
+    },
+    goalSetting: '目标设置',
+    dailyWordTarget: '每日单词目标',
+    dailyQuizTarget: '每日测验目标',
+    dailyDialogueTarget: '每日对话目标',
+    weeklyStudyHours: '每周学习时长',
+    preferredTime: '偏好学习时间',
+    times: {
+      morning: '早晨',
+      afternoon: '下午',
+      evening: '晚上',
+      any: '任意时间'
+    },
+    difficulty: '难度设置',
+    difficulties: {
+      easy: '简单',
+      medium: '中等',
+      hard: '困难',
+      adaptive: '自适应'
+    },
+    currentProgress: '当前进度',
+    target: '目标',
+    completed: '已完成',
+    taskStatus: {
+      pending: '待完成',
+      inProgress: '进行中',
+      completed: '已完成',
+      skipped: '已跳过'
+    },
+    noTasksToday: '今日无任务',
+    allTasksDone: '任务全部完成',
+    adjustmentNotice: '计划调整通知',
+    reason: '调整原因',
+    acceptAdjustment: '接受调整',
+    dismiss: '忽略',
+   智能调整: '系统根据您的进度进行了智能调整'
+  },
+
+  // ============================================
+  // Motivation (需求 5.5)
+  // ============================================
+  motivation: {
+    title: '成就与激励',
+    subtitle: '见证您的学习旅程',
+    achievements: '成就徽章',
+    badges: '徽章墙',
+    recentAchievements: '最近成就',
+    streak: '连续学习',
+    heatmap: '学习日历',
+    learningStreak: '连续学习',
+    days: '天',
+    longestStreak: '最长连续',
+    totalDays: '总学习天数',
+    atRisk: '连续即将中断',
+    broken: '已中断',
+    activity: '活动',
+    level: {
+      none: '无',
+      low: '低',
+      medium: '中',
+      high: '高',
+      highest: '最高'
+    },
+    categories: {
+      learning: '学习',
+      streak: '连续',
+      mastery: '精通',
+      exploration: '探索',
+      social: '社交',
+      special: '特殊'
+    },
+    rarity: {
+      common: '普通',
+      rare: '稀有',
+      epic: '史诗',
+      legendary: '传说'
+    },
+    earned: '已获得',
+    locked: '未解锁',
+    progress: '进度',
+    keepGoing: '继续努力',
+    almost: '即将达成',
+    newAchievement: '新成就解锁！',
+    noAchievements: '暂无成就，继续努力！',
+    months: {
+      jan: '1月',
+      feb: '2月',
+      mar: '3月',
+      apr: '4月',
+      may: '5月',
+      jun: '6月',
+      jul: '7月',
+      aug: '8月',
+      sep: '9月',
+      oct: '10月',
+      nov: '11月',
+      dec: '12月'
+    }
+  },
+
+  // ============================================
+  // Personalized Learning Page
+  // ============================================
+  learning: {
+    title: '个性化学习',
+    subtitle: '您的AI驱动的学习之旅',
+    tabs: {
+      review: '复习',
+      insights: '洞察',
+      plan: '计划',
+      achievements: '成就'
+    },
+    review: {
+      dueToday: '今日待复习',
+      items: '项',
+      allDone: '全部完成！暂无待复习内容。',
+      submit: '提交',
+      skip: '跳过'
+    },
+    plan: {
+      progress: '计划进度',
+      daysRemaining: '剩余 {days} 天',
+      goals: '学习目标',
+      dailyTasks: '今日任务'
+    }
   }
 }

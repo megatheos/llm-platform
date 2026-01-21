@@ -11,12 +11,18 @@
 .idea/
 .vscode/
 *.iml
+
+# Claude Code
+.claude/
 *.swp
 *.swo
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Node.js
+node_modules/
 
 # Frontend
 frontend/node_modules/
@@ -46,3 +52,5 @@ redis-dev-data/
 
 # AI Agent configuration (local only)
 AGENTS.md
+
+CLAUDE.md

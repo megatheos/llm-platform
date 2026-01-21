@@ -7,7 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AchievementBadgeWall: typeof import('./components/personalized/AchievementBadgeWall.vue')['default']
     AppLayout: typeof import('./components/AppLayout.vue')['default']
+    DailyTaskList: typeof import('./components/personalized/DailyTaskList.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBadge: typeof import('element-plus/es')['ElBadge']
@@ -28,6 +30,7 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput']
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPagination: typeof import('element-plus/es')['ElPagination']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
@@ -39,8 +42,18 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
+    GoalSetting: typeof import('./components/personalized/GoalSetting.vue')['default']
     LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
+    LearningHeatmap: typeof import('./components/personalized/LearningHeatmap.vue')['default']
+    LearningInsights: typeof import('./components/personalized/LearningInsights.vue')['default']
+    MemoryStatistics: typeof import('./components/personalized/MemoryStatistics.vue')['default']
+    PlanAdjustmentNotice: typeof import('./components/personalized/PlanAdjustmentNotice.vue')['default']
+    ProgressChart: typeof import('./components/personalized/ProgressChart.vue')['default']
+    ReviewCard: typeof import('./components/personalized/ReviewCard.vue')['default']
+    ReviewList: typeof import('./components/personalized/ReviewList.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StreakDisplay: typeof import('./components/personalized/StreakDisplay.vue')['default']
+    WeakAreasDisplay: typeof import('./components/personalized/WeakAreasDisplay.vue')['default']
   }
 }
