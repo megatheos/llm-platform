@@ -43,3 +43,6 @@ redis-dev-data/
 
 # Kiro IDE
 .kiro/
+
+# AI Agent configuration (local only)
+AGENTS.md
