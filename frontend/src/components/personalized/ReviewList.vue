@@ -146,7 +146,11 @@ onMounted(() => {
   <div class="review-list">
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
-      <el-skeleton :rows="3" animated />
+      <div class="skeleton-card">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content"></div>
+        <div class="skeleton-footer"></div>
+      </div>
     </div>
 
     <!-- Empty State -->
@@ -169,15 +173,19 @@ onMounted(() => {
       <!-- Progress Bar -->
       <div class="progress-section">
         <div class="progress-info">
+          <el-icon><Clock /></el-icon>
           <span class="progress-label">{{ t('quiz.progress') }}</span>
           <span class="progress-count">{{ currentIndex + 1 }}/{{ reviewQueue.length }}</span>
         </div>
-        <el-progress
-          :percentage="progress"
-          :stroke-width="8"
-          :show-text="false"
-          color="#3b82f6"
-        />
+        <div class="progress-bar-wrapper">
+          <el-progress
+            :percentage="progress"
+            :stroke-width="6"
+            :show-text="false"
+            color="#3b82f6"
+          />
+          <span class="progress-percent">{{ progress }}%</span>
+        </div>
       </div>
 
       <!-- Current Card -->
@@ -244,7 +252,34 @@ onMounted(() => {
 }
 
 .loading-state {
-  padding: 40px;
+  padding: 20px;
+}
+
+.skeleton-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--border-light);
+}
+
+.skeleton-header {
+  height: 24px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.skeleton-content {
+  height: 120px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.skeleton-footer {
+  height: 40px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
 }
 
 .empty-state {
@@ -253,7 +288,7 @@ onMounted(() => {
 }
 
 .empty-icon {
-  font-size: 64px;
+  font-size: 80px;
   margin-bottom: 16px;
 }
 
@@ -267,12 +302,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
 }
 
 .progress-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.progress-info .el-icon {
+  color: var(--text-muted);
 }
 
 .progress-label {
@@ -282,8 +325,27 @@ onMounted(() => {
 
 .progress-count {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
+  margin-left: auto;
+}
+
+.progress-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-bar-wrapper :deep(.el-progress) {
+  flex: 1;
+}
+
+.progress-percent {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 40px;
+  text-align: right;
 }
 
 .card-container {
@@ -295,6 +357,14 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
+
+.navigation .el-button {
+  border-radius: var(--radius-md);
 }
 
 .card-indicators {
@@ -313,6 +383,7 @@ onMounted(() => {
 
 .indicator:hover {
   background: var(--color-accent);
+  transform: scale(1.2);
 }
 
 .indicator.active {
@@ -327,6 +398,15 @@ onMounted(() => {
 .history-toggle {
   text-align: center;
   margin-top: 8px;
+}
+
+.history-toggle .el-button {
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+}
+
+.history-toggle .el-button:hover {
+  color: var(--color-primary);
 }
 
 .slide-fade-enter-active,

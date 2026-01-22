@@ -78,89 +78,19 @@ async function loadHeatmap() {
 
   loading.value = true
   try {
-    const response = await getLearningHeatmap(selectedYear.value)
-    if (response.code === 0 || response.code === 200) {
-      heatmapData.value = response.data
-    } else {
-      heatmapData.value = generateMockData(selectedYear.value)
-    }
+    // TODO: Implement heatmap API endpoint in backend
+    // const response = await getLearningHeatmap(selectedYear.value)
+    // if (response.code === 0 || response.code === 200) {
+    //   heatmapData.value = response.data
+    // } else {
+    //   heatmapData.value = { year: selectedYear.value, months: [], totalActivities: 0, maxDailyActivities: 0 }
+    // }
+    heatmapData.value = { year: selectedYear.value, months: [], totalActivities: 0, maxDailyActivities: 0 }
   } catch (error) {
     console.error('Failed to load heatmap:', error)
-    heatmapData.value = generateMockData(selectedYear.value)
+    heatmapData.value = { year: selectedYear.value, months: [], totalActivities: 0, maxDailyActivities: 0 }
   } finally {
     loading.value = false
-  }
-}
-
-function generateMockData(year: number): LearningHeatmapData {
-  const months = []
-  const maxDaily = 15
-  
-  for (let month = 0; month < 12; month++) {
-    const weeks = []
-    const firstDay = new Date(year, month, 1)
-    const startDayOfWeek = firstDay.getDay()
-    const daysInMonth = new Date(year, month + 1, 0).getDate()
-    
-    const prevMonthDays: HeatmapDay[] = []
-    for (let i = 0; i < startDayOfWeek; i++) {
-      prevMonthDays.push({
-        date: '',
-        count: 0,
-        level: 0
-      })
-    }
-    
-    const currentMonthDays: HeatmapDay[] = []
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day)
-      const count = Math.random() < 0.6 ? Math.floor(Math.random() * maxDaily) : 0
-      const level = count === 0 ? 0 : count <= 3 ? 1 : count <= 6 ? 2 : count <= 9 ? 3 : 4
-      
-      currentMonthDays.push({
-        date: date.toISOString().split('T')[0],
-        count,
-        level
-      })
-    }
-    
-    const allDays = [...prevMonthDays, ...currentMonthDays]
-    while (allDays.length % 7 !== 0) {
-      allDays.push({
-        date: '',
-        count: 0,
-        level: 0
-      })
-    }
-    
-    for (let i = 0; i < allDays.length; i += 7) {
-      weeks.push({
-        week: Math.floor(i / 7),
-        days: allDays.slice(i, i + 7)
-      })
-    }
-    
-    months.push({
-      month,
-      year,
-      weeks
-    })
-  }
-  
-  let total = 0
-  months.forEach(m => {
-    m.weeks.forEach(w => {
-      w.days.forEach(d => {
-        total += d.count
-      })
-    })
-  })
-  
-  return {
-    year,
-    months,
-    totalActivities: total,
-    maxDailyActivities: maxDaily
   }
 }
 

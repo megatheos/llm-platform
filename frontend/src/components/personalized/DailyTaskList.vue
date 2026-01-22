@@ -54,10 +54,10 @@ const overallProgress = computed(() => {
 })
 
 const taskTypeConfig = computed(() => ({
-  review: { icon: Clock, color: '#f59e0b', label: t('memory.review') },
-  new: { icon: Document, color: '#3b82f6', label: t('memory.new') },
-  quiz: { icon: Document, color: '#8b5cf6', label: t('quiz.title') },
-  dialogue: { icon: ChatDotRound, color: '#10b981', label: t('dialogue.title') }
+  review: { icon: Clock, color: '#f59e0b', label: t('memory.review'), emoji: '🔄' },
+  new: { icon: Document, color: '#3b82f6', label: t('memory.new'), emoji: '📚' },
+  quiz: { icon: Document, color: '#8b5cf6', label: t('quiz.title'), emoji: '📝' },
+  dialogue: { icon: ChatDotRound, color: '#10b981', label: t('dialogue.title'), emoji: '💬' }
 }))
 
 // Methods
@@ -102,25 +102,51 @@ function formatDate(date: string): string {
     day: 'numeric'
   })
 }
+
+function getWeekday(): string {
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  return weekdays[new Date().getDay()]
+}
 </script>
 
 <template>
   <div class="daily-task-list">
     <!-- Header -->
     <div class="list-header">
-      <div class="date-display">
-        <el-icon><Calendar /></el-icon>
-        <span>{{ formatDate(selectedDate) }}</span>
+      <div class="header-left">
+        <div class="date-icon">
+          <el-icon :size="24"><Calendar /></el-icon>
+        </div>
+        <div class="date-info">
+          <span class="weekday">{{ getWeekday() }}</span>
+          <span class="date">{{ formatDate(selectedDate) }}</span>
+        </div>
       </div>
-      <div class="progress-display">
-        <span class="progress-label">{{ t('plan.currentProgress') }}</span>
-        <el-progress
-          :percentage="overallProgress"
-          :stroke-width="8"
-          :show-text="false"
-          color="#10b981"
-        />
-        <span class="progress-value">{{ overallProgress }}%</span>
+      <div class="progress-section">
+        <div class="progress-circle">
+          <svg viewBox="0 0 36 36">
+            <path
+              class="circle-bg"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              class="circle-progress"
+              :stroke-dasharray="`${overallProgress}, 100`"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <span class="progress-percent">{{ overallProgress }}%</span>
+        </div>
+        <div class="progress-info">
+          <span class="progress-label">{{ t('plan.currentProgress') }}</span>
+          <span class="progress-count">
+            {{ completedTasks.length }}/{{ pendingTasks.length + completedTasks.length }} {{ t('plan.taskStatus.completed').toLowerCase() }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -128,7 +154,10 @@ function formatDate(date: string): string {
     <div class="tasks-container">
       <!-- Pending Tasks -->
       <div v-if="pendingTasks.length > 0" class="task-group">
-        <h4 class="group-title">{{ t('plan.taskStatus.inProgress') }}</h4>
+        <h4 class="group-title">
+          <span class="title-icon">📋</span>
+          {{ t('plan.taskStatus.inProgress') }}
+        </h4>
         <div class="task-list">
           <div
             v-for="task in pendingTasks"
@@ -136,10 +165,8 @@ function formatDate(date: string): string {
             class="task-item"
             :class="task.status"
           >
-            <div class="task-icon" :style="{ background: taskTypeConfig[task.type]?.color + '20', color: taskTypeConfig[task.type]?.color }">
-              <el-icon :size="18">
-                <component :is="taskTypeConfig[task.type]?.icon" />
-              </el-icon>
+            <div class="task-icon" :style="{ background: taskTypeConfig[task.type]?.color + '15', color: taskTypeConfig[task.type]?.color }">
+              <span class="emoji">{{ taskTypeConfig[task.type]?.emoji }}</span>
             </div>
             <div class="task-content">
               <span class="task-type">{{ taskTypeConfig[task.type]?.label }}</span>
@@ -165,15 +192,18 @@ function formatDate(date: string): string {
 
       <!-- Completed Tasks -->
       <div v-if="completedTasks.length > 0" class="task-group">
-        <h4 class="group-title completed">{{ t('plan.taskStatus.completed') }}</h4>
+        <h4 class="group-title completed">
+          <span class="title-icon">✅</span>
+          {{ t('plan.taskStatus.completed') }}
+        </h4>
         <div class="task-list">
           <div
             v-for="task in completedTasks"
             :key="task.id"
             class="task-item completed"
           >
-            <div class="task-icon" style="background: #10b98120; color: #10b981">
-              <el-icon :size="18"><Check /></el-icon>
+            <div class="task-icon" style="background: #10b98115; color: #10b981">
+              <span class="emoji">✓</span>
             </div>
             <div class="task-content">
               <span class="task-type">{{ taskTypeConfig[task.type]?.label }}</span>
@@ -185,7 +215,7 @@ function formatDate(date: string): string {
 
       <!-- Empty State -->
       <div v-if="props.tasks.length === 0" class="empty-state">
-        <el-icon :size="40"><Calendar /></el-icon>
+        <div class="empty-icon">🎯</div>
         <p>{{ t('plan.noTasksToday') }}</p>
       </div>
     </div>
@@ -196,32 +226,96 @@ function formatDate(date: string): string {
 .daily-task-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 20px;
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
-.date-display {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  gap: 14px;
+}
+
+.date-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.weekday {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
-.progress-display {
+.date {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.progress-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 200px;
+  gap: 16px;
+}
+
+.progress-circle {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.progress-circle svg {
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 3;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.progress-percent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.progress-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .progress-label {
@@ -229,10 +323,10 @@ function formatDate(date: string): string {
   color: var(--text-muted);
 }
 
-.progress-value {
-  font-size: var(--font-size-sm);
+.progress-count {
+  font-size: var(--font-size-md);
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--text-primary);
 }
 
 .tasks-container {
@@ -245,14 +339,21 @@ function formatDate(date: string): string {
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 16px;
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12px;
+}
+
+.title-icon {
+  font-size: 16px;
 }
 
 .group-title.completed {
@@ -262,21 +363,22 @@ function formatDate(date: string): string {
 .task-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .task-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 14px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .task-item:hover {
-  background: var(--border-color-light);
+  background: var(--border-light);
+  transform: translateX(4px);
 }
 
 .task-item.completed {
@@ -284,19 +386,23 @@ function formatDate(date: string): string {
 }
 
 .task-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.emoji {
+  font-size: 18px;
+}
+
 .task-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .task-type {
@@ -308,22 +414,28 @@ function formatDate(date: string): string {
 .task-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .task-progress :deep(.el-progress) {
   flex: 1;
 }
 
+.task-progress :deep(.el-progress-bar__outer) {
+  background: var(--border-color);
+}
+
 .progress-text {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   min-width: 40px;
+  text-align: right;
 }
 
 .task-done {
   font-size: var(--font-size-sm);
   color: #10b981;
+  font-weight: 500;
 }
 
 .task-actions {
@@ -331,12 +443,38 @@ function formatDate(date: string): string {
   align-items: center;
 }
 
+.task-actions :deep(.el-checkbox) {
+  --el-checkbox-checked-bg-color: var(--color-primary);
+  --el-checkbox-checked-input-border-color: var(--color-primary);
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 32px;
+  gap: 12px;
+  padding: 40px;
   color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 48px;
+}
+
+@media (max-width: 480px) {
+  .list-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .header-left {
+    flex-direction: column;
+  }
+
+  .progress-section {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

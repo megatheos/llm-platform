@@ -108,31 +108,27 @@ async function loadStreak() {
         }, 3000)
       }
     } else {
-      streak.value = generateMockStreak()
+      streak.value = {
+        currentStreak: 0,
+        longestStreak: 0,
+        totalLearningDays: 0,
+        lastActivityDate: new Date().toISOString(),
+        streakStatus: 'active',
+        daysUntilRisk: 0
+      }
     }
   } catch (error) {
     console.error('Failed to load streak:', error)
-    streak.value = generateMockStreak()
+    streak.value = {
+      currentStreak: 0,
+      longestStreak: 0,
+      totalLearningDays: 0,
+      lastActivityDate: new Date().toISOString(),
+      streakStatus: 'active',
+      daysUntilRisk: 0
+    }
   } finally {
     loading.value = false
-  }
-}
-
-function generateMockStreak(): StreakInfo {
-  const today = new Date()
-  const currentStreak = Math.floor(Math.random() * 30) + 1
-  const longestStreak = Math.max(currentStreak, Math.floor(Math.random() * 60) + 30)
-  const longestDate = new Date(today)
-  longestDate.setDate(longestDate.getDate() - Math.floor(Math.random() * 30))
-  
-  return {
-    currentStreak,
-    longestStreak,
-    longestStreakDate: longestDate.toISOString(),
-    totalLearningDays: Math.floor(Math.random() * 200) + 50,
-    lastActivityDate: new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString(),
-    streakStatus: 'active',
-    daysUntilRisk: 1
   }
 }
 

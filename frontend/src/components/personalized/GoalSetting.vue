@@ -82,6 +82,23 @@ const difficultyDescription = computed(() => {
   return map[formData.difficultyLevel] || ''
 })
 
+const goalIcons: Record<string, string> = {
+  words: '📚',
+  quizzes: '📝',
+  time: '⏱️',
+  dialogues: '💬',
+  default: '🎯'
+}
+
+function getGoalIcon(type: string): string {
+  return goalIcons[type] || goalIcons.default
+}
+
+function getGoalProgress(goal: StudyGoal): number {
+  if (!goal.targetValue) return 0
+  return Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100))
+}
+
 // Methods
 function handleSave() {
   saving.value = true
@@ -114,14 +131,15 @@ function handleEdit() {
       <div class="goals-list">
         <div v-for="goal in goals" :key="goal.id" class="goal-item">
           <div class="goal-header">
+            <span class="goal-icon">{{ getGoalIcon(goal.type) }}</span>
             <span class="goal-type">{{ goal.type }}</span>
             <span class="goal-progress">{{ goal.currentValue }}/{{ goal.targetValue }}</span>
           </div>
           <el-progress
-            :percentage="Math.min(100, (goal.currentValue / goal.targetValue) * 100)"
+            :percentage="getGoalProgress(goal)"
             :stroke-width="8"
             :show-text="false"
-            color="#3b82f6"
+            :color="getGoalProgress(goal) >= 100 ? '#10b981' : '#3b82f6'"
           />
         </div>
       </div>
@@ -134,7 +152,7 @@ function handleEdit() {
           <el-icon><Calendar /></el-icon>
           {{ t('plan.goalSetting') }}
         </h3>
-        <el-button v-if="!isEditing" link @click="handleEdit">
+        <el-button v-if="!isEditing" link @click="handleEdit" class="edit-btn">
           <el-icon><Edit /></el-icon>
           {{ t('common.edit') }}
         </el-button>
@@ -142,28 +160,46 @@ function handleEdit() {
 
       <div v-if="!isEditing" class="settings-display">
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.dailyWordTarget') }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">📚</span>
+            <span class="setting-label">{{ t('plan.dailyWordTarget') }}</span>
+          </div>
           <span class="setting-value">{{ formData.dailyWordTarget }}</span>
         </div>
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.dailyQuizTarget') }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">📝</span>
+            <span class="setting-label">{{ t('plan.dailyQuizTarget') }}</span>
+          </div>
           <span class="setting-value">{{ formData.dailyQuizTarget }}</span>
         </div>
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.dailyDialogueTarget') }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">💬</span>
+            <span class="setting-label">{{ t('plan.dailyDialogueTarget') }}</span>
+          </div>
           <span class="setting-value">{{ formData.dailyDialogueTarget }}</span>
         </div>
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.weeklyStudyHours') }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">⏱️</span>
+            <span class="setting-label">{{ t('plan.weeklyStudyHours') }}</span>
+          </div>
           <span class="setting-value">{{ formData.weeklyStudyHours }}h</span>
         </div>
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.preferredTime') }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">🕐</span>
+            <span class="setting-label">{{ t('plan.preferredTime') }}</span>
+          </div>
           <span class="setting-value">{{ timeOptions.find(o => o.value === formData.preferredStudyTime)?.label }}</span>
         </div>
         <div class="setting-item">
-          <span class="setting-label">{{ t('plan.difficulty') }}</span>
-          <span class="setting-value">{{ difficultyOptions.find(o => o.value === formData.difficultyLevel)?.label }}</span>
+          <div class="setting-info">
+            <span class="setting-icon">📊</span>
+            <span class="setting-label">{{ t('plan.difficulty') }}</span>
+          </div>
+          <span class="setting-value difficulty-badge">{{ difficultyOptions.find(o => o.value === formData.difficultyLevel)?.label }}</span>
         </div>
       </div>
 
@@ -219,7 +255,7 @@ function handleEdit() {
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 20px;
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .section-title {
@@ -232,11 +268,24 @@ function handleEdit() {
   margin-bottom: 16px;
 }
 
+.section-title .el-icon {
+  color: var(--color-primary);
+}
+
 .settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.edit-btn {
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+}
+
+.edit-btn:hover {
+  color: var(--color-primary);
 }
 
 .settings-display {
@@ -249,20 +298,43 @@ function handleEdit() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 14px 16px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.setting-item:hover {
+  background: var(--border-light);
+}
+
+.setting-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-icon {
+  font-size: 18px;
 }
 
 .setting-label {
   font-size: var(--font-size-sm);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .setting-value {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.difficulty-badge {
+  padding: 4px 10px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .goals-list {
@@ -275,21 +347,32 @@ function handleEdit() {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 14px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
 }
 
 .goal-header {
   display: flex;
-  justify-content: space-between;
-  font-size: var(--font-size-sm);
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-icon {
+  font-size: 18px;
 }
 
 .goal-type {
+  flex: 1;
   text-transform: capitalize;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .goal-progress {
-  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-primary);
 }
 
 .settings-form {
@@ -311,10 +394,37 @@ function handleEdit() {
   min-width: 120px;
 }
 
+.form-row :deep(.el-input-number) {
+  --el-input-width: 100px;
+}
+
+.form-row :deep(.el-input__wrapper) {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.form-actions .el-button {
+  border-radius: var(--radius-md);
+}
+
+.form-actions .el-button--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 480px) {
+  .settings-display {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

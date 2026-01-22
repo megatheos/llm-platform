@@ -415,6 +415,13 @@ language: {
     almost: '即将达成',
     newAchievement: '新成就解锁！',
     noAchievements: '暂无成就，继续努力！',
+    learningHeatmap: '学习热图',
+    totalActivities: '总活动数',
+    less: '较少',
+    more: '更多',
+    average: '平均',
+    yearChange: '年度变化',
+    lastActivity: '上次活动',
     months: {
       jan: '1月',
       feb: '2月',

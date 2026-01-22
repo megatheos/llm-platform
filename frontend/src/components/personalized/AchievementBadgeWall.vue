@@ -149,6 +149,17 @@ function handleCategoryChange(category: AchievementCategory | 'all') {
   selectedCategory.value = category
 }
 
+function getCategoryEmoji(category: string): string {
+  switch (category) {
+    case 'learning': return '📚'
+    case 'streak': return '🔥'
+    case 'mastery': return '🏆'
+    case 'exploration': return '🗺️'
+    case 'special': return '⭐'
+    default: return '🎯'
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadAchievements()
@@ -161,9 +172,9 @@ onMounted(() => {
     <!-- Header -->
     <div class="wall-header">
       <div class="header-left">
-        <el-icon size="24" class="header-icon">
-          <Trophy />
-        </el-icon>
+        <div class="header-icon">
+          <el-icon :size="24"><Trophy /></el-icon>
+        </div>
         <div>
           <h3>{{ t('motivation.achievements') }}</h3>
           <p class="subtitle">
@@ -171,13 +182,25 @@ onMounted(() => {
           </p>
         </div>
       </div>
-      <div class="completion-rate">
-        <el-progress
-          :percentage="completionRate"
-          :stroke-width="8"
-          :color="getRarityColor"
-          type="line"
-        />
+      <div class="header-right">
+        <div class="progress-circle">
+          <svg viewBox="0 0 36 36">
+            <path
+              class="circle-bg"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              class="circle-progress"
+              :stroke-dasharray="`${completionRate}, 100`"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <span class="circle-text">{{ completionRate }}%</span>
+        </div>
       </div>
     </div>
 
@@ -191,8 +214,9 @@ onMounted(() => {
         <el-radio-button
           v-for="cat in categories"
           :key="cat.value"
-          :label="cat.value"
+          :value="cat.value"
         >
+          <span class="cat-emoji">{{ getCategoryEmoji(cat.value) }}</span>
           {{ cat.label }}
         </el-radio-button>
       </el-radio-group>
@@ -200,7 +224,9 @@ onMounted(() => {
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
-      <el-skeleton :rows="3" animated />
+      <div class="skeleton-grid">
+        <div v-for="i in 6" :key="i" class="skeleton-card"></div>
+      </div>
     </div>
 
     <!-- Achievement Grid -->
@@ -211,29 +237,30 @@ onMounted(() => {
         class="achievement-card"
         :class="{ earned: isEarned(def.id), locked: !isEarned(def.id) }"
       >
+        <div class="card-glow" :style="{ background: getRarityColor(def.rarity) + '15' }"></div>
         <div class="badge-container">
           <!-- Badge Icon -->
           <div
             class="badge-icon"
             :style="{
-              color: getRarityColor(def.rarity),
+              color: isEarned(def.id) ? getRarityColor(def.rarity) : '#9ca3af',
               backgroundColor: isEarned(def.id)
-                ? getRarityColor(def.rarity) + '20'
-                : '#e5e7eb'
+                ? getRarityColor(def.rarity) + '15'
+                : '#f3f4f6'
             }"
           >
-            <el-icon size="28">
+            <el-icon :size="28">
               <component :is="getRarityIcon(def.rarity)" />
             </el-icon>
             <div v-if="!isEarned(def.id)" class="lock-overlay">
-              <Lock />
+              <el-icon :size="20"><Lock /></el-icon>
             </div>
           </div>
 
           <!-- Badge Info -->
           <div class="badge-info">
-            <div class="badge-title">
-              {{ def.title }}
+            <div class="badge-title-row">
+              <span class="badge-title">{{ def.title }}</span>
               <el-tag
                 size="small"
                 :type="getRarityTagType(def.rarity) as any"
@@ -255,7 +282,8 @@ onMounted(() => {
 
       <!-- Empty State -->
       <div v-if="filteredDefinitions.length === 0" class="empty-state">
-        <el-empty :description="t('motivation.noAchievements')" />
+        <div class="empty-icon">🏆</div>
+        <p>{{ t('motivation.noAchievements') }}</p>
       </div>
     </div>
   </div>
@@ -263,9 +291,9 @@ onMounted(() => {
 
 <style scoped>
 .achievement-badge-wall {
-  padding: 16px;
-  background: var(--bg-card);
-  border-radius: 12px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
 }
 
@@ -273,102 +301,179 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .header-icon {
-  color: var(--primary);
-  background: var(--primary-light);
-  border-radius: 8px;
-  padding: 8px;
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 
 .header-left h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 4px 0 0 0;
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
 }
 
-.completion-rate {
-  width: 120px;
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-circle {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.progress-circle svg {
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 3;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.circle-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .category-filters {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.cat-emoji {
+  margin-right: 4px;
 }
 
 .loading-state {
   padding: 20px;
 }
 
-.achievement-grid {
+.skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
 }
 
+.skeleton-card {
+  height: 80px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
 .achievement-card {
   background: var(--bg-tertiary);
-  border-radius: 8px;
-  padding: 12px;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.achievement-card.earned .card-glow {
+  opacity: 1;
 }
 
 .achievement-card.earned {
   background: var(--bg-card);
-  border-color: var(--border-light);
 }
 
 .achievement-card.earned:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .achievement-card.locked {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .badge-container {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-start;
 }
 
 .badge-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.earned:hover .badge-icon {
+  transform: scale(1.1);
 }
 
 .lock-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,68 +485,99 @@ onMounted(() => {
   min-width: 0;
 }
 
-.badge-title {
+.badge-title-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.badge-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-size-md);
   color: var(--text-primary);
-  margin-bottom: 4px;
 }
 
 .rarity-tag {
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
+  text-transform: capitalize;
 }
 
 .badge-description {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: 4px;
-  line-height: 1.4;
+  line-height: 1.5;
+  margin-bottom: 8px;
 }
 
 .earned-date {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--success);
-  margin-top: 4px;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: #10b981;
+  font-weight: 500;
 }
 
 .empty-state {
-  padding: 40px 20px;
-  text-align: center;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 48px;
 }
 
 /* Element Plus overrides */
 :deep(.el-radio-group) {
   background: var(--bg-tertiary);
-  border-radius: 6px;
-  padding: 2px;
+  border-radius: var(--radius-md);
+  padding: 4px;
 }
 
 :deep(.el-radio-button) {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 :deep(.el-radio-button__inner) {
   background: transparent !important;
   border: none !important;
   color: var(--text-secondary) !important;
-  border-radius: 4px !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 8px 12px;
 }
 
 :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: var(--primary) !important;
+  background: var(--color-primary) !important;
   color: white !important;
   box-shadow: none !important;
 }
 
 :deep(.el-progress) {
   --el-color-primary: var(--primary);
+}
+
+@media (max-width: 480px) {
+  .wall-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .category-filters {
+    justify-content: center;
+  }
+
+  :deep(.el-radio-button__inner) {
+    padding: 6px 10px;
+    font-size: var(--font-size-xs);
+  }
 }
 </style>

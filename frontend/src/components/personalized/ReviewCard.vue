@@ -83,16 +83,18 @@ function getDifficultyColor(): string {
 
 <template>
   <div class="review-card" :class="animationClass">
-    <!-- Header -->
+    <!-- Mastery Header -->
     <div class="card-header">
       <div class="mastery-info">
         <span class="mastery-label">{{ t('memory.masteryLevel') }}</span>
-        <el-progress
-          :percentage="masteryPercentage"
-          :stroke-width="6"
-          :show-text="false"
-          color="#3b82f6"
-        />
+        <div class="progress-bar-container">
+          <el-progress
+            :percentage="masteryPercentage"
+            :stroke-width="6"
+            :show-text="false"
+            color="#3b82f6"
+          />
+        </div>
         <span class="mastery-value">{{ cardData.item.masteryLevel }}/5</span>
       </div>
       <el-tag :type="cardData.suggestedAction === 'mastered' ? 'success' : 'warning'" size="small">
@@ -100,8 +102,8 @@ function getDifficultyColor(): string {
       </el-tag>
     </div>
 
-    <!-- Content -->
-    <div class="card-content">
+    <!-- Content Card -->
+    <div class="content-card">
       <div class="content-main">
         <h2 class="content-text">{{ cardData.item.content }}</h2>
         <p v-if="cardData.item.translation" class="content-translation">
@@ -111,15 +113,27 @@ function getDifficultyColor(): string {
 
       <!-- Answer Section -->
       <div v-if="showAnswer" class="answer-section">
-        <div class="answer-content">
-          <p>Type: {{ cardData.item.contentType }}</p>
-          <p>Reviews: {{ cardData.item.reviewCount }}</p>
-          <p>Interval: {{ cardData.item.interval }} days</p>
+        <div class="answer-stats">
+          <div class="stat-item">
+            <span class="stat-icon">📝</span>
+            <span class="stat-value">{{ cardData.item.contentType }}</span>
+            <span class="stat-label">Type</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">🔄</span>
+            <span class="stat-value">{{ cardData.item.reviewCount }}</span>
+            <span class="stat-label">Reviews</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">📅</span>
+            <span class="stat-value">{{ cardData.item.interval }}d</span>
+            <span class="stat-label">Interval</span>
+          </div>
         </div>
 
         <!-- Quality Selection -->
         <div class="quality-options">
-          <p class="quality-label">{{ t('memory.review') }}:</p>
+          <p class="quality-label">{{ t('memory.rateRecall') }}</p>
           <div class="options-grid">
             <button
               v-for="option in qualityOptions"
@@ -129,7 +143,8 @@ function getDifficultyColor(): string {
               :style="{ '--option-color': option.color }"
               @click="handleSubmit(option.value)"
             >
-              <el-icon :size="20"><component :is="option.icon" /></el-icon>
+              <div class="btn-bg"></div>
+              <el-icon :size="24"><component :is="option.icon" /></el-icon>
               <span class="option-label">{{ option.label }}</span>
             </button>
           </div>
@@ -158,8 +173,8 @@ function getDifficultyColor(): string {
 .review-card {
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid var(--border-color-light);
+  padding: 20px;
+  border: 1px solid var(--border-light);
   transition: all 0.3s ease;
 }
 
@@ -182,7 +197,9 @@ function getDifficultyColor(): string {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .mastery-info {
@@ -198,14 +215,23 @@ function getDifficultyColor(): string {
   white-space: nowrap;
 }
 
+.progress-bar-container {
+  flex: 1;
+  max-width: 200px;
+}
+
+.progress-bar-container :deep(.el-progress) {
+  --el-progress-text-color: var(--text-primary);
+}
+
 .mastery-value {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-primary);
   white-space: nowrap;
 }
 
-.card-content {
+.content-card {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -213,14 +239,15 @@ function getDifficultyColor(): string {
 
 .content-main {
   text-align: center;
-  padding: 20px 0;
+  padding: 24px 0;
 }
 
 .content-text {
-  font-size: var(--font-size-2xl);
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
 }
 
 .content-translation {
@@ -234,12 +261,35 @@ function getDifficultyColor(): string {
   gap: 20px;
 }
 
-.answer-content {
+.answer-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
   padding: 16px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-icon {
+  font-size: 20px;
+}
+
+.stat-value {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .quality-options {
@@ -251,12 +301,13 @@ function getDifficultyColor(): string {
 .quality-label {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
+  text-align: center;
 }
 
 .options-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .quality-btn {
@@ -267,27 +318,48 @@ function getDifficultyColor(): string {
   padding: 16px 8px;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   cursor: pointer;
   transition: all 0.2s;
   color: var(--text-secondary);
+  position: relative;
+  overflow: hidden;
+}
+
+.quality-btn .btn-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--option-color);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .quality-btn:hover {
   border-color: var(--option-color);
-  background: var(--option-color);
-  background: color-mix(in srgb, var(--option-color) 10%, transparent);
+  color: var(--option-color);
+}
+
+.quality-btn:hover .btn-bg {
+  opacity: 0.08;
 }
 
 .quality-btn.selected {
   border-color: var(--option-color);
-  background: color-mix(in srgb, var(--option-color) 15%, transparent);
+  background: color-mix(in srgb, var(--option-color) 12%, transparent);
   color: var(--option-color);
+}
+
+.quality-btn .btn-bg,
+.quality-btn *,
+.quality-btn ::after {
+  pointer-events: none;
 }
 
 .option-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .show-answer-section {
@@ -295,17 +367,36 @@ function getDifficultyColor(): string {
   justify-content: center;
 }
 
+.show-answer-section :deep(.el-button) {
+  padding: 12px 32px;
+  font-size: var(--font-size-md);
+  border-radius: var(--radius-md);
+}
+
 .card-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color-light);
+  border-top: 1px solid var(--border-light);
+}
+
+.card-actions :deep(.el-button) {
+  border-radius: var(--radius-md);
 }
 
 @media (max-width: 480px) {
   .options-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .content-text {
+    font-size: 24px;
+  }
+
+  .answer-stats {
+    gap: 16px;
+    padding: 12px;
   }
 }
 </style>

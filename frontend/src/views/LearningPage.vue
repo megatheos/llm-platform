@@ -27,6 +27,7 @@ import StreakDisplay from '@/components/personalized/StreakDisplay.vue'
 import type {
   ReviewCardData,
   LearningProfile,
+  WeeklyProgress,
   StudyPlan,
   StreakInfo,
   Achievement,
@@ -36,8 +37,8 @@ import type {
 } from '@/types/personalized'
 import { getDueReviews } from '@/api/memory'
 import { getLearningProfile } from '@/api/profile'
-import { getActivePlan, getDailyTasks } from '@/api/plans'
-import { getStreakInfo, getLearningHeatmap } from '@/api/motivation'
+import { getActivePlan, getDailyTasks, getGoalSettings, getPlanAdjustments } from '@/api/plans'
+import { getStreakInfo } from '@/api/motivation'
 import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
@@ -77,116 +78,25 @@ const errors = ref({
 // Real data from API
 const reviewCards = ref<ReviewCardData[]>([])
 const learningProfile = ref<LearningProfile | null>(null)
+const weeklyProgress = ref<WeeklyProgress | null>(null)
 const currentPlan = ref<StudyPlan | null>(null)
 const dailyTasks = ref<DailyTask[]>([])
 const streakInfo = ref<StreakInfo | null>(null)
 const achievements = ref<Achievement[]>([])
-
-// Mock data - fallback when API fails
-const reviewCardsMock = ref<ReviewCardData[]>([
-  {
-    item: {
-      id: 1,
-      contentId: 101,
-      contentType: 'word',
-      content: 'ephemeral',
-      translation: '短暂的，转瞬即逝的',
-      masteryLevel: 2,
-      nextReviewDate: new Date().toISOString(),
-      reviewCount: 3,
-      easeFactor: 2.5,
-      interval: 1
-    },
-    isDue: true,
-    daysUntilReview: 0,
-    suggestedAction: 'review'
-  },
-  {
-    item: {
-      id: 2,
-      contentId: 102,
-      contentType: 'word',
-      content: 'serendipity',
-      translation: '意外惊喜，机缘巧合',
-      masteryLevel: 3,
-      nextReviewDate: new Date(Date.now() + 86400000).toISOString(),
-      reviewCount: 5,
-      easeFactor: 2.6,
-      interval: 3
-    },
-    isDue: false,
-    daysUntilReview: 1,
-    suggestedAction: 'restudy'
-  },
-  {
-    item: {
-      id: 3,
-      contentId: 103,
-      contentType: 'word',
-      content: 'ubiquitous',
-      translation: '普遍存在的，无处不在的',
-      masteryLevel: 4,
-      nextReviewDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-      reviewCount: 7,
-      easeFactor: 2.7,
-      interval: 7
-    },
-    isDue: false,
-    daysUntilReview: 2,
-    suggestedAction: 'mastered'
-  }
-])
-
-const studyPlan = ref<StudyPlan>({
-  id: 1,
-  userId: authStore.user?.id || 1,
-  title: '30-Day Vocabulary Challenge',
-  description: 'Master 500 new words through spaced repetition',
-  startDate: new Date(Date.now() - 10 * 86400000).toISOString(),
-  endDate: new Date(Date.now() + 20 * 86400000).toISOString(),
-  status: 'active',
-  goals: [
-    { id: 1, planId: 1, type: 'words', targetValue: 500, currentValue: 320, deadline: new Date(Date.now() + 20 * 86400000).toISOString(), isCompleted: false },
-    { id: 2, planId: 1, type: 'quizzes', targetValue: 30, currentValue: 25, deadline: new Date(Date.now() + 20 * 86400000).toISOString(), isCompleted: false },
-    { id: 3, planId: 1, type: 'time', targetValue: 30, currentValue: 10, deadline: new Date(Date.now() + 20 * 86400000).toISOString(), isCompleted: false }
-  ],
-  dailyTasks: [
-    { id: 1, planId: 1, date: new Date().toISOString().split('T')[0], type: 'review', targetCount: 20, completedCount: 15, status: 'in_progress' },
-    { id: 2, planId: 1, date: new Date().toISOString().split('T')[0], type: 'new', targetCount: 10, completedCount: 8, status: 'in_progress' },
-    { id: 3, planId: 1, date: new Date().toISOString().split('T')[0], type: 'quiz', targetCount: 2, completedCount: 2, status: 'completed' }
-  ],
-  createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-  updatedAt: new Date().toISOString()
-})
-
-const goalSettings = ref<GoalSettingData>({
-  dailyWordTarget: 20,
-  dailyQuizTarget: 3,
-  dailyDialogueTarget: 1,
-  weeklyStudyHours: 10,
-  preferredStudyTime: 'morning',
-  focusAreas: ['vocabulary', 'grammar'],
-  difficultyLevel: 'medium'
-})
-
-const planAdjustments = ref<PlanAdjustment[]>([
-  {
-    id: 1,
-    planId: 1,
-    type: 'difficulty_adjustment',
-    reason: 'Your completion rate has been above 90% this week. Consider increasing difficulty.',
-    oldValue: 'medium',
-    newValue: 'hard',
-    suggestedAt: new Date().toISOString(),
-    isRead: false
-  }
-])
+const goalSettings = ref<GoalSettingData | null>(null)
+const planAdjustments = ref<PlanAdjustment[]>([])
 
 // Computed
-const todayTasks = computed(() => studyPlan.value.dailyTasks.filter(t => t.date === new Date().toISOString().split('T')[0]))
+const todayTasks = computed(() => {
+  if (!currentPlan.value) return []
+  return currentPlan.value.dailyTasks?.filter(t => t.date === new Date().toISOString().split('T')[0]) || []
+})
+const studyPlan = computed(() => currentPlan.value)
 const overallProgress = computed(() => {
+  if (!studyPlan.value?.goals || studyPlan.value.goals.length === 0) return 0
   const total = studyPlan.value.goals.reduce((sum, g) => sum + g.targetValue, 0)
   const current = studyPlan.value.goals.reduce((sum, g) => sum + g.currentValue, 0)
+  if (total === 0) return 0
   return Math.round((current / total) * 100)
 })
 
@@ -217,14 +127,12 @@ async function loadReviewData() {
       }))
     } else {
       errors.value.review = response.message || 'Failed to load review data'
-      // Fallback to mock data
-      reviewCards.value = reviewCardsMock.value
+      reviewCards.value = []
     }
   } catch (error) {
     console.error('Error loading review data:', error)
     errors.value.review = 'Network error loading review data'
-    // Fallback to mock data
-    reviewCards.value = reviewCardsMock.value
+    reviewCards.value = []
   } finally {
     loading.value.review = false
   }
@@ -234,12 +142,20 @@ async function loadInsightsData() {
   loading.value.insights = true
   errors.value.insights = null
   try {
-    const response = await getLearningProfile()
-    if (response.code === 0 || response.code === 200) {
-      learningProfile.value = response.data
+    const profileResponse = await getLearningProfile()
+
+    if (profileResponse.code === 0 || profileResponse.code === 200) {
+      learningProfile.value = profileResponse.data
     } else {
-      errors.value.insights = response.message || 'Failed to load profile data'
+      errors.value.insights = profileResponse.message || 'Failed to load profile data'
     }
+
+    // TODO: Implement weekly progress API endpoint in backend
+    // const weeklyResponse = await getWeeklyProgress(0)
+    // if (weeklyResponse.code === 0 || weeklyResponse.code === 200) {
+    //   weeklyProgress.value = weeklyResponse.data
+    // }
+
   } catch (error) {
     console.error('Error loading insights data:', error)
     errors.value.insights = 'Network error loading insights data'
@@ -268,6 +184,10 @@ async function loadPlanData() {
     if (planResponse.code !== 0 && planResponse.code !== 200) {
       errors.value.plan = planResponse.message || 'Failed to load plan data'
     }
+
+    // TODO: Implement goal-settings and adjustments API endpoints in backend
+    // goalSettings.value = await getGoalSettings()
+    // planAdjustments.value = await getPlanAdjustments(true)
   } catch (error) {
     console.error('Error loading plan data:', error)
     errors.value.plan = 'Network error loading plan data'
@@ -285,7 +205,16 @@ async function loadAchievementsData() {
     ])
 
     if (streakResponse.code === 0 || streakResponse.code === 200) {
-      streakInfo.value = streakResponse.data
+      // Map LearningStreak to StreakInfo if needed
+      const streakData = streakResponse.data
+      streakInfo.value = {
+        currentStreak: streakData.currentStreak || 0,
+        longestStreak: streakData.longestStreak || 0,
+        totalLearningDays: streakData.totalLearningDays || 0,
+        lastActivityDate: streakData.lastActivityDate || new Date().toISOString(),
+        streakStatus: streakData.streakStatus || 'active',
+        daysUntilRisk: streakData.daysUntilRisk || 0
+      }
     } else {
       errors.value.achievements = streakResponse.message || 'Failed to load achievements data'
     }
@@ -429,10 +358,10 @@ function handlePlanAdjustmentRead(adjustmentId: number) {
           <!-- Right: Memory Stats -->
           <div class="stats-section">
             <MemoryStatistics
-              :total-items="156"
+              :total-items="reviewCards.length"
               :due-today="reviewCards.length"
-              :mastered="89"
-              :new-today="5"
+              :mastered="reviewCards.filter(card => card.suggestedAction === 'mastered').length"
+              :new-today="0"
             />
           </div>
         </div>
@@ -459,28 +388,27 @@ function handlePlanAdjustmentRead(adjustmentId: number) {
           <!-- Content -->
           <div v-else class="insights-main">
             <LearningInsights
+              v-if="learningProfile || weeklyProgress"
               :profile="learningProfile || undefined"
-              :weekly-progress="{
-                weekStartDate: new Date(Date.now() - 7 * 86400000).toISOString(),
-                weekEndDate: new Date().toISOString(),
-                days: [],
-                totalActivities: 45,
-                totalTimeMinutes: 320,
-                averageDailyActivities: 6.4,
-                improvementRate: 12
-              }"
+              :weekly-progress="weeklyProgress || undefined"
+            />
+            <el-empty
+              v-else
+              :description="t('dashboard.noActivities')"
+              :image-size="100"
             />
           </div>
 
           <!-- Side: Charts & Analytics -->
           <div class="insights-side">
             <ProgressChart
-              :data="[
-                { name: 'Vocabulary', value: 85 },
-                { name: 'Grammar', value: 78 },
-                { name: 'Speaking', value: 65 },
-                { name: 'Listening', value: 72 }
-              ]"
+              v-if="false"
+              :data="[]"
+            />
+            <el-empty
+              v-else
+              :description="t('profile.noData')"
+              :image-size="60"
             />
             <WeakAreasDisplay
               :areas="learningProfile?.weakestAreas || []"
@@ -509,18 +437,25 @@ function handlePlanAdjustmentRead(adjustmentId: number) {
 
           <!-- Content -->
           <div v-else class="plan-main">
-            <GoalSetting
-              :settings="goalSettings"
-              :goals="studyPlan.goals"
-              @update="handleGoalUpdate"
-            />
-            <DailyTaskList
-              :tasks="todayTasks"
-              @complete="handleTaskComplete"
-            />
-            <PlanAdjustmentNotice
-              :adjustments="planAdjustments"
-              @read="handlePlanAdjustmentRead"
+            <div v-if="studyPlan || goalSettings || todayTasks.length > 0">
+              <GoalSetting
+                :settings="goalSettings || undefined"
+                :goals="studyPlan?.goals || []"
+                @update="handleGoalUpdate"
+              />
+              <DailyTaskList
+                :tasks="todayTasks"
+                @complete="handleTaskComplete"
+              />
+              <PlanAdjustmentNotice
+                :adjustments="planAdjustments"
+                @read="handlePlanAdjustmentRead"
+              />
+            </div>
+            <el-empty
+              v-else
+              :description="t('plan.noActivePlan')"
+              :image-size="100"
             />
           </div>
 
@@ -556,9 +491,15 @@ function handlePlanAdjustmentRead(adjustmentId: number) {
           <!-- Content -->
           <div v-else class="achievements-main">
             <AchievementBadgeWall
+              v-if="achievements.length > 0"
               :achievements="achievements"
-              :total-count="12"
+              :total-count="achievements.length"
               :unlocked-count="achievements.length"
+            />
+            <el-empty
+              v-else
+              :description="t('motivation.noAchievements')"
+              :image-size="100"
             />
           </div>
 
@@ -566,16 +507,20 @@ function handlePlanAdjustmentRead(adjustmentId: number) {
           <div class="achievements-side">
             <LearningHeatmap
               :year="2026"
-              :months="[]"
-              :total-activities="156"
-              :max-daily-activities="12"
             />
-            <StreakDisplay
-              :current-streak="(streakInfo as any)?.currentStreak || 0"
-              :longest-streak="(streakInfo as any)?.longestStreak || 0"
-              :total-learning-days="(streakInfo as any)?.totalLearningDays || 0"
-              :streak-status="(streakInfo as any)?.streakStatus || 'active'"
-              :days-until-risk="(streakInfo as any)?.daysUntilRisk || 0"
+            <div v-if="streakInfo">
+              <StreakDisplay
+                :current-streak="(streakInfo as any)?.currentStreak || 0"
+                :longest-streak="(streakInfo as any)?.longestStreak || 0"
+                :total-learning-days="(streakInfo as any)?.totalLearningDays || 0"
+                :streak-status="(streakInfo as any)?.streakStatus || 'active'"
+                :days-until-risk="(streakInfo as any)?.daysUntilRisk || 0"
+              />
+            </div>
+            <el-empty
+              v-else
+              :description="t('motivation.noStreakData')"
+              :image-size="60"
             />
           </div>
         </div>

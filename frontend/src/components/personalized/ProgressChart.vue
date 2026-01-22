@@ -39,8 +39,8 @@ const props = withDefaults(defineProps<Props>(), {
 const loading = ref(false)
 const selectedTimeRange = ref<'week' | 'month' | 'year'>('month')
 const chartData = ref<{ labels: string[]; values: number[] }>({
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  values: [5, 8, 12, 6, 10, 15, 8]
+  labels: [],
+  values: []
 })
 
 // Computed
@@ -94,30 +94,8 @@ const completionRate = computed(() => props.completionRate)
 
 // Methods
 function generateChartData() {
-  const labels: string[] = []
-  const values: number[] = []
-  
-  const days = selectedTimeRange.value === 'week' ? 7 : selectedTimeRange.value === 'month' ? 30 : 365
-  const today = new Date()
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    
-    if (selectedTimeRange.value === 'year') {
-      if (i % 30 === 0) {
-        labels.push(date.toLocaleDateString('en', { month: 'short' }))
-      } else {
-        labels.push('')
-      }
-    } else {
-      labels.push(date.toLocaleDateString('en', { weekday: 'short' }))
-    }
-    
-    values.push(Math.floor(Math.random() * 15) + 5)
-  }
-  
-  chartData.value = { labels, values }
+  // Clear chart data - will be populated from API
+  chartData.value = { labels: [], values: [] }
 }
 
 watch(selectedTimeRange, () => {

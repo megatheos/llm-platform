@@ -112,6 +112,10 @@ function getMilestoneProgress(milestone: Milestone): number {
   if (!milestone.targetValue) return 0
   return Math.min(100, Math.round((milestone.currentValue / milestone.targetValue) * 100))
 }
+
+function getAreaProgress(value: number): number {
+  return Math.min(100, value)
+}
 </script>
 
 <template>
@@ -123,22 +127,34 @@ function getMilestoneProgress(milestone: Milestone): number {
         {{ t('profile.insights') }}
       </h3>
 
-      <div class="profile-cards">
-        <div class="profile-card">
-          <span class="card-value">{{ profile.totalWordsLearned }}</span>
-          <span class="card-label">{{ t('profile.totalWords') }}</span>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon words">📚</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ profile.totalWordsLearned }}</span>
+            <span class="stat-label">{{ t('profile.totalWords') }}</span>
+          </div>
         </div>
-        <div class="profile-card">
-          <span class="card-value">{{ profile.totalStudyHours }}h</span>
-          <span class="card-label">{{ t('profile.studyTime') }}</span>
+        <div class="stat-card">
+          <div class="stat-icon time">⏱️</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ profile.totalStudyHours }}h</span>
+            <span class="stat-label">{{ t('profile.studyTime') }}</span>
+          </div>
         </div>
-        <div class="profile-card">
-          <span class="card-value">{{ profile.averageQuizScore }}%</span>
-          <span class="card-label">{{ t('profile.averageScore') }}</span>
+        <div class="stat-card">
+          <div class="stat-icon score">🎯</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ profile.averageQuizScore }}%</span>
+            <span class="stat-label">{{ t('profile.averageScore') }}</span>
+          </div>
         </div>
-        <div class="profile-card">
-          <span class="card-value">{{ profile.totalLearningDays }}</span>
-          <span class="card-label">{{ t('profile.learningDays') }}</span>
+        <div class="stat-card">
+          <div class="stat-icon days">🔥</div>
+          <div class="stat-content">
+            <span class="stat-value">{{ profile.totalLearningDays }}</span>
+            <span class="stat-label">{{ t('profile.learningDays') }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -161,6 +177,23 @@ function getMilestoneProgress(milestone: Milestone): number {
           :show-text="false"
           :color="improvementColor"
         />
+        <div class="improvement-details">
+          <div class="detail-item">
+            <span class="detail-icon">📊</span>
+            <span class="detail-value">{{ weeklyProgress?.totalActivities || 0 }}</span>
+            <span class="detail-label">Activities</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">⏰</span>
+            <span class="detail-value">{{ formatDuration(weeklyProgress?.totalTimeMinutes || 0) }}</span>
+            <span class="detail-label">Study Time</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">📈</span>
+            <span class="detail-value">{{ weeklyProgress?.averageDailyActivities?.toFixed(1) || 0 }}</span>
+            <span class="detail-label">Daily Avg</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -172,7 +205,7 @@ function getMilestoneProgress(milestone: Milestone): number {
       </h3>
       <ul class="recommendations-list">
         <li v-for="(rec, index) in recommendations" :key="index" class="recommendation-item">
-          <el-icon><InfoFilled /></el-icon>
+          <el-icon class="rec-icon"><InfoFilled /></el-icon>
           <span>{{ rec }}</span>
         </li>
       </ul>
@@ -231,7 +264,7 @@ function getMilestoneProgress(milestone: Milestone): number {
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: 20px;
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .section-title {
@@ -244,32 +277,71 @@ function getMilestoneProgress(milestone: Milestone): number {
   margin-bottom: 16px;
 }
 
-.profile-cards {
+.section-title .el-icon {
+  color: var(--color-primary);
+}
+
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
-.profile-card {
+.stat-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 12px;
   padding: 16px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  text-align: center;
+  transition: all 0.2s ease;
 }
 
-.card-value {
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.stat-icon.words {
+  background: #3b82f620;
+}
+
+.stat-icon.time {
+  background: #f59e0b20;
+}
+
+.stat-icon.score {
+  background: #10b98120;
+}
+
+.stat-icon.days {
+  background: #ef444420;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--text-primary);
 }
 
-.card-label {
+.stat-label {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  margin-top: 4px;
 }
 
 .improvement-card {
@@ -294,6 +366,37 @@ function getMilestoneProgress(milestone: Milestone): number {
   align-items: center;
   gap: 4px;
   font-weight: 600;
+  font-size: var(--font-size-lg);
+}
+
+.improvement-details {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+  margin-top: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-icon {
+  font-size: 18px;
+}
+
+.detail-value {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.detail-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .recommendations-list {
@@ -305,13 +408,19 @@ function getMilestoneProgress(milestone: Milestone): number {
 .recommendation-item {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
+  gap: 12px;
+  padding: 14px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   list-style: none;
+}
+
+.rec-icon {
+  color: var(--color-primary);
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .milestones-list {
@@ -356,6 +465,11 @@ function getMilestoneProgress(milestone: Milestone): number {
   padding: 12px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.achievement-item:hover {
+  transform: translateX(4px);
 }
 
 .achievement-icon {
@@ -368,8 +482,12 @@ function getMilestoneProgress(milestone: Milestone): number {
 }
 
 @media (max-width: 480px) {
-  .profile-cards {
+  .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .improvement-details {
+    gap: 16px;
   }
 }
 </style>

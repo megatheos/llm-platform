@@ -13,7 +13,7 @@ import type {
  * @returns Active study plan
  */
 export function getActivePlan(): Promise<Result<StudyPlan | null>> {
-  return request.get('/plans/active').then(res => res.data)
+  return request.get('/plans/current').then(res => res.data)
 }
 
 /**

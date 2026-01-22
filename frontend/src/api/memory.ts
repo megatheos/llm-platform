@@ -13,7 +13,7 @@ import type {
  * @returns List of review card data
  */
 export function getDueReviews(limit?: number): Promise<Result<ReviewCardData[]>> {
-  return request.get('/memory/reviews/due', { params: { limit } }).then(res => res.data)
+  return request.get('/memory/due-reviews', { params: { limit } }).then(res => res.data)
 }
 
 /**
